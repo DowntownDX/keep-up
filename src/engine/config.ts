@@ -120,3 +120,6 @@ export const SYSTEM_UNLOCK_VENTURES: Record<SystemId, number> = {
   automations: 2,
   audienceFunnel: 3,
 };
+
+/** Agents keep working for this long while the game is closed. */
+export const OFFLINE_CAP_SECONDS = 8 * 60 * 60;

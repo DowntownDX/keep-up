@@ -162,3 +162,18 @@ These settle rules the design above leaves open:
 - Building is inert after the tenth venture ships.
 - The rate helper reports gross production only. Build burn is stock-capped
   rather than a rate, so it is not subtracted there.
+
+## Save and offline decisions (Phase 3)
+
+- Saves are an envelope of `{ version, state }`. The current version is 2.
+  Version 1 is the Phase 1 state shape and migrates by adding zeroed venture
+  fields.
+- A save that fails to parse, migrate or validate returns null. Absent and
+  corrupt saves are not distinguished yet.
+- Validation rejects impossible states: negative or non-finite resources, a
+  missing skill, duplicate worker ids or agent kinds, `pendingSeconds >= 1`, a
+  stale `nextAgentNumber`, and venture progress at or above the requirement.
+- Offline time is capped at eight hours and runs through the normal engine at
+  full speed. Non-positive or non-finite elapsed time is ignored.
+- `stepOffline` has no separate chunk loop: `step` already advances in fixed
+  one-second ticks.

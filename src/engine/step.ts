@@ -2,6 +2,7 @@ import {
   ACTIVITIES,
   BUILD_CREDITS_PER_POINT,
   BUILD_KNOWHOW_PER_POINT,
+  OFFLINE_CAP_SECONDS,
   TICK_SECONDS,
 } from "./config";
 import { creditRate, workerRate, xpToNextLevel } from "./rates";
@@ -26,6 +27,15 @@ export function step(state: GameState, seconds: number): GameState {
   }
   if (state.pendingSeconds < 0) state.pendingSeconds = 0;
   return state;
+}
+
+/**
+ * Catch up after time away. Elapsed time is capped at eight hours and advanced
+ * through the normal fixed ticks. Non-finite or non-positive time is ignored.
+ */
+export function stepOffline(state: GameState, elapsedSeconds: number): GameState {
+  if (!Number.isFinite(elapsedSeconds) || elapsedSeconds <= 0) return state;
+  return step(state, Math.min(elapsedSeconds, OFFLINE_CAP_SECONDS));
 }
 
 function tick(state: GameState): void {
