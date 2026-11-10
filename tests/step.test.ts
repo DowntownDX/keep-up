@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assignActivity } from "../src/engine/actions";
+import { addAgent, assignActivity } from "../src/engine/actions";
 import type { ActivityId } from "../src/engine/config";
 import { createInitialState, type GameState } from "../src/engine/state";
 import { step } from "../src/engine/step";
@@ -29,6 +29,52 @@ describe("step", () => {
     const state = gameWithYouOn("dayJob");
     step(state, 10);
     expect(state.resources.cash).toBeCloseTo(15 + 10 * 0.6, 9);
+  });
+
+  it("gives a hired Creator the 1.6x content rate through step", () => {
+    const state = createInitialState();
+    state.resources.cash = 40;
+    expect(addAgent(state, "creator")).toBe(true);
+    expect(assignActivity(state, "agent-1", "content")).toBe(true);
+
+    step(state, 10);
+
+    expect(state.resources.followers).toBeCloseTo(16, 9);
+    expect(state.workers[1].skills.content.level).toBe(1);
+    expect(state.workers[1].skills.content.xp).toBeCloseTo(10, 9);
+  });
+
+  it("levels each worker's own skill", () => {
+    const state = createInitialState();
+    state.resources.cash = 40;
+    expect(addAgent(state, "creator")).toBe(true);
+    expect(assignActivity(state, "you", "content")).toBe(true);
+    expect(assignActivity(state, "agent-1", "content")).toBe(true);
+
+    step(state, 20);
+
+    expect(state.workers[0].skills.content.level).toBe(2);
+    expect(state.workers[1].skills.content.level).toBe(2);
+    expect(state.workers[0].skills.content.xp).toBeCloseTo(5, 9);
+    expect(state.workers[1].skills.content.xp).toBeCloseTo(5, 9);
+
+    expect(assignActivity(state, "agent-1", "dayJob")).toBe(true);
+    step(state, 10);
+
+    expect(state.workers[0].skills.content.level).toBe(2);
+    expect(state.workers[1].skills.content.level).toBe(2);
+    expect(state.workers[0].skills.content.xp).toBeCloseTo(15, 9);
+    expect(state.workers[1].skills.dayJob.level).toBe(1);
+    expect(state.workers[1].skills.dayJob.xp).toBeCloseTo(10, 9);
+  });
+
+  it("raises the Credits trickle with subscription tier", () => {
+    const state = gameWithYouOn("content");
+    state.subscriptionTier = 3;
+
+    step(state, 10);
+
+    expect(state.resources.credits).toBeCloseTo(20 + 10 * 2.25, 9);
   });
 
   it("produces nothing for an idle worker but still trickles credits", () => {
@@ -66,6 +112,38 @@ describe("step", () => {
     expect(long.resources.credits).toBeCloseTo(short.resources.credits, 9);
     expect(long.workers[0].skills.content.level).toBe(short.workers[0].skills.content.level);
     expect(long.workers[0].skills.content.xp).toBeCloseTo(short.workers[0].skills.content.xp, 9);
+  });
+
+  it("banks a partial second and runs whole ticks only", () => {
+    const state = gameWithYouOn("content");
+    step(state, 0.5);
+    expect(state.resources.followers).toBe(0);
+    expect(state.pendingSeconds).toBeCloseTo(0.5, 12);
+
+    step(state, 0.5);
+    expect(state.resources.followers).toBeCloseTo(1.2, 9);
+    expect(state.pendingSeconds).toBe(0);
+  });
+
+  it("turns ten tenths of a second into one tick", () => {
+    const state = gameWithYouOn("content");
+    for (let i = 0; i < 10; i += 1) step(state, 0.1);
+    expect(state.resources.followers).toBeCloseTo(1.2, 9);
+    expect(state.pendingSeconds).toBe(0);
+  });
+
+  it("matches a 60-second step when fed half-second chunks", () => {
+    const chunks = gameWithYouOn("content");
+    for (let i = 0; i < 120; i += 1) step(chunks, 0.5);
+
+    const whole = gameWithYouOn("content");
+    step(whole, 60);
+
+    expect(chunks.resources.followers).toBeCloseTo(whole.resources.followers, 9);
+    expect(chunks.resources.credits).toBeCloseTo(whole.resources.credits, 9);
+    expect(chunks.workers[0].skills.content.level).toBe(whole.workers[0].skills.content.level);
+    expect(chunks.workers[0].skills.content.xp).toBeCloseTo(whole.workers[0].skills.content.xp, 9);
+    expect(chunks.pendingSeconds).toBe(0);
   });
 
   it("does not change state for a zero-second step", () => {

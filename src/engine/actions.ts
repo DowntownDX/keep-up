@@ -16,7 +16,7 @@ export function assignActivity(
 ): boolean {
   const worker = state.workers.find((candidate) => candidate.id === workerId);
   if (!worker) return false;
-  if (activity !== null && !Object.hasOwn(ACTIVITIES, activity)) return false;
+  if (activity !== null && ACTIVITIES[activity] === undefined) return false;
   worker.activity = activity;
   return true;
 }

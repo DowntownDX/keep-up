@@ -139,3 +139,14 @@ For a player who checks in a few times a day.
 A good run also has the player fall behind the latest model at least twice and
 catch up. If Edge is always at its maximum or always at its floor, change the
 release pace or upgrade costs in `config.ts`.
+
+## Engine decisions for version 1
+
+These settle rules the design above leaves open:
+
+- The player starts alone and idle, with no activity selected.
+- Each agent kind can be hired once. The five kinds fill the five seats.
+- Skill bonuses are additive: level 1 is 1x output, and each level above adds
+  12% of base output.
+- The engine advances in whole one-second ticks. A partial second is stored in
+  the save and applied on a later step.

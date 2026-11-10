@@ -26,6 +26,8 @@ export interface GameState {
   workers: Worker[];
   subscriptionTier: number;
   nextAgentNumber: number;
+  /** Fraction of a tick carried into the next step. */
+  pendingSeconds: number;
 }
 
 export function createWorker(id: string, kind: WorkerKind): Worker {
@@ -42,5 +44,6 @@ export function createInitialState(): GameState {
     workers: [createWorker("you", "you")],
     subscriptionTier: STARTING_SUBSCRIPTION_TIER,
     nextAgentNumber: 1,
+    pendingSeconds: 0,
   };
 }

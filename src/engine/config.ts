@@ -62,8 +62,8 @@ export const SKILL_BONUS_PER_LEVEL = 0.12;
 export const XP_BASE_SECONDS = 15;
 export const XP_GROWTH = 1.25;
 
-export const MAX_AGENTS = 5;
 export const AGENT_SEAT_COSTS: readonly number[] = [40, 400, 4_000, 40_000, 400_000];
+export const MAX_AGENTS = AGENT_KINDS.length;
 
 export const STARTING_RESOURCES: Record<ResourceId, number> = {
   cash: 15,
@@ -77,5 +77,5 @@ export const CREDITS_BASE_PER_SECOND = 1;
 export const SUBSCRIPTION_TRICKLE_GROWTH = 1.5;
 export const STARTING_SUBSCRIPTION_TIER = 1;
 
-/** The engine integrates in fixed ticks so long and short steps agree. */
+/** The engine advances in whole ticks of this length; step() carries the remainder. */
 export const TICK_SECONDS = 1;
