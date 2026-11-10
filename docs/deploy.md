@@ -34,7 +34,9 @@ is needed. Serve `index.html` with a short cache and the hashed files under
 The operator delegated the host choice, so the site deploys from
 `DowntownDX/keep-up` with `.github/workflows/deploy.yml`:
 
-- Public URL: <https://downtowndx.github.io/keep-up/>
+- Public URL: <https://downtowndx.github.io/keep-up/>. Verified on
+  2026-11-10 at 390px: 0 horizontal overflow, no console errors, and a save
+  survived a reload.
 - A push to `main` runs `npm ci`, `npm test`, `npm run build`, uploads `dist/`
   as the Pages artifact and deploys it through the official Pages actions.
 - The workflow needs no secrets; the repository is public and contains no

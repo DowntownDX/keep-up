@@ -78,12 +78,16 @@ Baseline: `npm test` 153/153, `npm run build` clean, `npm run sim` PASS at
   `npm run verify:ui` and `npm run verify:preview` PASS with 0 overflow and
   44px buttons; committed as `Phase 9: polish and ship`.
 
-- [ ] 9. Publish to GitHub Pages: add the relative Vite base and the Pages
+- [x] 9. Publish to GitHub Pages: add the relative Vite base and the Pages
   workflow, create the public `DowntownDX/keep-up` repository, enable Pages
   with the workflow build type, then open the public URL at 390px and confirm
   the page and a save/reload.
   Check: the workflow run is green and the public URL serves the game on a
   phone-width viewport.
+  Evidence: workflow run 42836853261 green (build 20s, deploy 2m29s);
+  <https://downtowndx.github.io/keep-up/> loads at 390px with 0 overflow, no
+  console/page/response errors, Followers grew to 0.72 and survived a reload;
+  screenshot `artifacts/public-mobile.png`.
 
 ## Resolved assumptions
 
