@@ -1,15 +1,22 @@
+import { GuideCard } from "./GuideCard";
 import { HirePanel } from "./HirePanel";
+import { nextHint } from "./hints";
+import { NextMove } from "./NextMove";
 import { ReleaseCard } from "./ReleaseCard";
 import { ResourceBar } from "./ResourceBar";
 import { UpgradeCard } from "./UpgradeCard";
 import { useGame } from "./useGame";
 import { VentureCard } from "./VentureCard";
+import { WelcomeBack } from "./WelcomeBack";
 import { WorkerCard } from "./WorkerCard";
 
 export function Game() {
   const {
     state,
+    offline,
     saveError,
+    dismissOffline,
+    reset,
     assign,
     hire,
     active,
@@ -31,7 +38,11 @@ export function Game() {
         </p>
       </header>
 
+      {offline ? <WelcomeBack summary={offline} onDismiss={dismissOffline} /> : null}
+
       <ResourceBar state={state} />
+
+      <NextMove hint={nextHint(state)} />
 
       <main className="board">
         <section className="crew" aria-labelledby="crew-title">
@@ -60,6 +71,8 @@ export function Game() {
           <HirePanel state={state} onHire={hire} />
         </aside>
       </main>
+
+      <GuideCard onReset={reset} />
 
       <footer className="footer">
         <span>Progress saves in this browser.</span>

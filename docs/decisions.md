@@ -159,8 +159,19 @@ All Phase 0-3 decisions were made on 2026-11-10.
 | Seat costs are 40, 800, 12,000, 120,000 and 1,200,000 Cash. | The old second and third seats arrived so early that the Builder erased the middle-game targets. |
 | Subscription upgrades follow the table 25, 500, 15,000, 300,000, 6M, 60M, 300M, 1B and 3B Cash. | Early upgrades must be a real choice so the player can fall behind; late prices must stay reachable with passive income. These rows supersede the first-draft build, seat, gate and subscription numbers in Phases 2, 6 and 7. |
 
+## Phase 9 — polish and ship
+
+| Decision | Why |
+| --- | --- |
+| The welcome-back summary is computed once per page load from the save timestamp: applied seconds (capped at eight hours), a capped flag, positive resource gains and ventures shipped. | It reports what the offline step actually produced, not a second estimate. |
+| The summary is dismissible and appears only when there is a positive elapsed time. | A fresh load or a corrupt save must not show a fake report. |
+| Hints are deterministic UI text from ordered rules: all idle, hire, gate, build, subscription, automation, upgrade, then a default. | Gives a new player one next move without adding engine rules; the order is testable. |
+| Reset clears only `keep-up.save`, asks for confirmation twice and starts a fresh game. | Local progress is the only data the game owns; a native modal would be harder to test and less consistent on phones. |
+| The guide is a static two-tab card: How to play and Your data. The data tab says clearing site data erases progress. | Satisfies the guide without new mechanics, and makes the browser-only save limit plain. |
+| Deploy means a production build a static host can serve. The host choice, account and publish remain the operator's decision, so this phase ships a verified preview and `docs/deploy.md`, not a public URL. | No host was chosen and no external action is authorized; a local preview at phone width is the available evidence. |
+| `verify:ui --preview` runs the whole browser check against the built `dist` through `vite preview`. | The same checks prove the production bundle, not just the dev server. |
+
 ## Still open
 
-- Phase 9: polish, reset, guide, deploy.
 - Operator decisions from the build plan: name, fictional labs, quitting the day
   job, art direction, static host, offline cap as an upgrade.

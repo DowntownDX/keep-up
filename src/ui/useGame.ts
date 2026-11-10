@@ -11,22 +11,30 @@ import { recordAutomation } from "../engine/automations";
 import type { ActivityId, AgentKind } from "../engine/config";
 import { createInitialState, type GameState } from "../engine/state";
 import { stepOffline } from "../engine/step";
-import { loadStoredGame, saveStoredGame } from "./storage";
+import {
+  clearStoredGame,
+  loadStoredGameWithReport,
+  saveStoredGame,
+  type OfflineSummary,
+} from "./storage";
 
 const AUTOSAVE_MS = 5_000;
 
-function readInitialState(): GameState {
-  if (typeof window === "undefined") return createInitialState();
+function readInitialGame(): { state: GameState; summary: OfflineSummary | null } {
+  if (typeof window === "undefined") return { state: createInitialState(), summary: null };
   try {
-    return loadStoredGame(window.localStorage, Date.now());
+    return loadStoredGameWithReport(window.localStorage, Date.now());
   } catch {
-    return createInitialState();
+    return { state: createInitialState(), summary: null };
   }
 }
 
 export interface GameController {
   state: GameState;
+  offline: OfflineSummary | null;
   saveError: boolean;
+  dismissOffline: () => void;
+  reset: () => void;
   assign: (workerId: string, activity: ActivityId | null) => void;
   hire: (kind: AgentKind) => void;
   active: (workerId: string) => void;
@@ -37,7 +45,9 @@ export interface GameController {
 }
 
 export function useGame(): GameController {
-  const [state, setState] = useState<GameState>(readInitialState);
+  const [initial] = useState(readInitialGame);
+  const [state, setState] = useState<GameState>(initial.state);
+  const [offline, setOffline] = useState<OfflineSummary | null>(initial.summary);
   const [saveError, setSaveError] = useState(false);
   const stateRef = useRef(state);
 
@@ -133,9 +143,27 @@ export function useGame(): GameController {
     mutate((draft) => upgradeSubscription(draft));
   }, [mutate]);
 
+  const dismissOffline = useCallback(() => {
+    setOffline(null);
+  }, []);
+
+  const reset = useCallback(() => {
+    try {
+      clearStoredGame(window.localStorage);
+    } catch {
+      // A failed clear still starts a fresh game; the next autosave replaces it.
+    }
+    setState(createInitialState());
+    setOffline(null);
+    setSaveError(false);
+  }, []);
+
   return {
     state,
+    offline,
     saveError,
+    dismissOffline,
+    reset,
     assign,
     hire,
     active,

@@ -3,20 +3,27 @@ import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright-core";
-import { createServer } from "vite";
+import { createServer, preview } from "vite";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const artifacts = path.join(root, "artifacts");
 const url = "http://127.0.0.1:5199/";
+const usePreview = process.argv.includes("--preview");
 
 await mkdir(artifacts, { recursive: true });
 
-const server = await createServer({
-  root,
-  logLevel: "silent",
-  server: { host: "127.0.0.1", port: 5199, strictPort: true },
-});
-await server.listen();
+const server = usePreview
+  ? await preview({
+      root,
+      logLevel: "silent",
+      preview: { host: "127.0.0.1", port: 5199, strictPort: true },
+    })
+  : await createServer({
+      root,
+      logLevel: "silent",
+      server: { host: "127.0.0.1", port: 5199, strictPort: true },
+    });
+if (!usePreview) await server.listen();
 
 let browser;
 const errors = [];
@@ -52,6 +59,8 @@ try {
     true,
     "the first upgrade should be unaffordable at the starting 15 Cash",
   );
+  assert.equal(await page.locator(".next-move").getAttribute("data-hint"), "start");
+  assert.match(await page.locator(".next-move").innerText(), /Put someone to work/);
 
   const you = page.getByRole("article", { name: "You" });
   assert.equal(await you.getByRole("button", { name: /Find clients/ }).isDisabled(), true);
@@ -201,6 +210,20 @@ try {
   );
   assert.ok(desktopOverflow <= 1, `desktop horizontal overflow: ${desktopOverflow}`);
 
+  await page.getByRole("tab", { name: "Your data" }).click();
+  const dataPanel = page.getByRole("tabpanel", { name: "Your data" });
+  assert.match(await dataPanel.innerText(), /Clearing site data erases it/);
+  await dataPanel.getByRole("button", { name: "Reset progress" }).click();
+  assert.match(await page.getByRole("alertdialog").innerText(), /Reset all progress/);
+  await page.getByRole("alertdialog").getByRole("button", { name: "Cancel" }).click();
+  assert.equal(await page.getByRole("button", { name: "Reset progress" }).count(), 1);
+  await page.getByRole("button", { name: "Reset progress" }).click();
+  await page.getByRole("alertdialog").getByRole("button", { name: "Yes, reset" }).click();
+  await page.waitForTimeout(300);
+  assert.equal(await cash(), "15");
+  assert.match(await page.locator(".crew .section-head p").innerText(), /1 of 6/);
+  const resetWorked = true;
+
   const mobile = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const mobilePage = await mobile.newPage();
   mobilePage.on("console", (message) => {
@@ -215,12 +238,29 @@ try {
   await mobilePage.goto(url, { waitUntil: "networkidle" });
   await mobilePage.getByRole("heading", { name: "Keep Up", level: 1 }).waitFor();
   assert.equal(await mobilePage.locator(".timeline li").count(), 10);
+  assert.equal(await mobilePage.locator(".next-move").count(), 1);
+  assert.match(await mobilePage.locator(".next-move").innerText(), /Put someone to work/);
+  assert.equal(await mobilePage.getByRole("tab", { name: "Your data" }).count(), 1);
 
   const mobileOverflow = await mobilePage.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );
   assert.ok(mobileOverflow <= 1, `mobile horizontal overflow: ${mobileOverflow}`);
   await mobilePage.screenshot({ path: path.join(artifacts, "mobile.png"), fullPage: true });
+
+  await mobilePage.getByRole("tab", { name: "Your data" }).click();
+  assert.match(
+    await mobilePage.getByRole("tabpanel", { name: "Your data" }).innerText(),
+    /Clearing site data erases it/,
+  );
+  assert.equal(await mobilePage.getByRole("button", { name: "Reset progress" }).count(), 1);
+  const mobileMinButton = await mobilePage.evaluate(() => {
+    const heights = [...document.querySelectorAll("button")]
+      .map((button) => button.getBoundingClientRect().height)
+      .filter((height) => height > 0);
+    return heights.length ? Math.min(...heights) : 0;
+  });
+  assert.ok(mobileMinButton >= 44, `mobile buttons should be at least 44px, got ${mobileMinButton}`);
 
   const gateData = JSON.parse(seededSave);
   gateData.savedAt = Date.now();
@@ -252,15 +292,49 @@ try {
   );
   await gateContext.close();
 
+  const offlineData = JSON.parse(seededSave);
+  offlineData.savedAt = Date.now() - 3_600_000;
+  offlineData.state.elapsedSeconds = 150;
+  offlineData.state.resources.cash = 100;
+  offlineData.state.resources.knowHow = 20;
+  offlineData.state.workers[0].activity = "content";
+  const offlineContext = await browser.newContext({ viewport: { width: 1000, height: 900 } });
+  await offlineContext.addInitScript(
+    (save) => localStorage.setItem("keep-up.save", save),
+    JSON.stringify(offlineData),
+  );
+  const offlinePage = await offlineContext.newPage();
+  offlinePage.on("console", (message) => {
+    if (message.type() === "error") errors.push(`offline console: ${message.text()}`);
+  });
+  offlinePage.on("pageerror", (error) => errors.push(`offline pageerror: ${error.message}`));
+  offlinePage.on("response", (response) => {
+    if (response.status() >= 400) {
+      errors.push(`offline response ${response.status()}: ${response.url()}`);
+    }
+  });
+  await offlinePage.goto(url, { waitUntil: "networkidle" });
+  await offlinePage.locator(".welcome").waitFor();
+  const welcomeText = await offlinePage.locator(".welcome").innerText();
+  assert.match(welcomeText, /While you were away/);
+  assert.match(welcomeText, /1h of work/);
+  await offlinePage.screenshot({ path: path.join(artifacts, "welcome.png"), fullPage: true });
+  await offlinePage.getByRole("button", { name: "Dismiss welcome-back summary" }).click();
+  await offlinePage.waitForTimeout(200);
+  assert.equal(await offlinePage.locator(".welcome").count(), 0);
+  await offlineContext.close();
+  const offlineReported = true;
+
   assert.deepEqual(errors, [], `browser errors: ${errors.join("; ")}`);
 
   console.log(
     JSON.stringify(
       {
         desktop: { followersAfterTick, followersAfterClick, minButton, overflow: desktopOverflow },
-        mobile: { overflow: mobileOverflow },
+        mobile: { overflow: mobileOverflow, minButton: mobileMinButton },
         release: { generationAtSeed: 2, edgeAfterUpgrade, cashAfterUpgrade },
-        screenshots: ["artifacts/desktop.png", "artifacts/mobile.png"],
+        ui: { hint: "start", resetWorked, offlineReported },
+        screenshots: ["artifacts/desktop.png", "artifacts/mobile.png", "artifacts/welcome.png"],
       },
       null,
       2,

@@ -205,3 +205,20 @@ and in `config.ts`: a steeper early build curve with a flatter tail, 0.05
 Know-how per build point, 0.1 Followers per second, seats up to 1.2M Cash, a
 1.15M first Follower gate growing 1.8x, and a subscription cost table ending at
 3B Cash. The tuning rounds are recorded in `docs/balance-log.md`.
+
+## Polish and ship (Phase 9)
+
+A next-move card names one useful action at a time: put someone to work, hire,
+grow Followers for a gate, build, upgrade the subscription, record an
+automation or buy an upgrade. It never changes the game by itself.
+
+When the game loads after time away, a dismissible welcome-back panel reports
+the hours credited (up to eight), the resources the team made and any ventures
+that shipped. The Guide card has a How to play tab and a Your data tab; the data
+tab states that progress lives in this browser only and that clearing site data
+erases it. Reset asks for confirmation twice and then starts a fresh game.
+
+The production build is a static site: `npm run build` writes `dist/`, and
+`npm run verify:preview` runs the whole browser check against that built bundle
+at desktop and phone width. The host and public URL remain the operator's
+choice and are not part of this repository; `docs/deploy.md` lists the steps.
