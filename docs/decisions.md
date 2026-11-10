@@ -168,10 +168,11 @@ All Phase 0-3 decisions were made on 2026-11-10.
 | Hints are deterministic UI text from ordered rules: all idle, hire, gate, build, subscription, automation, upgrade, then a default. | Gives a new player one next move without adding engine rules; the order is testable. |
 | Reset clears only `keep-up.save`, asks for confirmation twice and starts a fresh game. | Local progress is the only data the game owns; a native modal would be harder to test and less consistent on phones. |
 | The guide is a static two-tab card: How to play and Your data. The data tab says clearing site data erases progress. | Satisfies the guide without new mechanics, and makes the browser-only save limit plain. |
-| Deploy means a production build a static host can serve. The host choice, account and publish remain the operator's decision, so this phase ships a verified preview and `docs/deploy.md`, not a public URL. | No host was chosen and no external action is authorized; a local preview at phone width is the available evidence. |
+| The operator delegated the host choice; the site deploys to GitHub Pages from `DowntownDX/keep-up` through `.github/workflows/deploy.yml` at `https://downtowndx.github.io/keep-up/`. | A public repository plus the official Pages actions needs no secrets and gives a phone-reachable URL with every push to `main`. |
+| `vite.config.ts` uses `base: "./"` so one build works at a domain root and under the `/keep-up/` project path. | The Pages URL is a subpath; relative assets avoid a host-specific rebuild. |
 | `verify:ui --preview` runs the whole browser check against the built `dist` through `vite preview`. | The same checks prove the production bundle, not just the dev server. |
 
 ## Still open
 
 - Operator decisions from the build plan: name, fictional labs, quitting the day
-  job, art direction, static host, offline cap as an upgrade.
+  job, art direction, offline cap as an upgrade.

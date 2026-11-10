@@ -29,10 +29,19 @@ Because the game has one HTML entry and no client routes, no SPA fallback rule
 is needed. Serve `index.html` with a short cache and the hashed files under
 `assets/` with a long immutable cache.
 
-## Open decision
+## Chosen host: GitHub Pages
 
-The host, account and public URL are still the operator's choice. No deployment
-or push is performed here: that needs the operator's account, authorization
-and the final name. Once a host is chosen, run the build and upload `dist/`,
-then open the URL on a phone and confirm the layout and that a save survives a
-reload.
+The operator delegated the host choice, so the site deploys from
+`DowntownDX/keep-up` with `.github/workflows/deploy.yml`:
+
+- Public URL: <https://downtowndx.github.io/keep-up/>
+- A push to `main` runs `npm ci`, `npm test`, `npm run build`, uploads `dist/`
+  as the Pages artifact and deploys it through the official Pages actions.
+- The workflow needs no secrets; the repository is public and contains no
+  credentials.
+- `vite.config.ts` uses `base: "./"`, so the same bundle works at the domain
+  root and under the `/keep-up/` project path.
+- To redeploy after a change: commit and push `main`, then watch the workflow
+  in the repository's Actions tab.
+
+If the host ever changes, the "Static host" list above still applies.
