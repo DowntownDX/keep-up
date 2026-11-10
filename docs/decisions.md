@@ -67,6 +67,7 @@ All Phase 0-3 decisions were made on 2026-11-10.
 | Decision | Why |
 | --- | --- |
 | Start every phase with `ds-plan-loop`: write `PLAN.md`, get one fresh-context critique, execute one checked step at a time. | Operator instruction; recorded in `CLAUDE.md`. |
+| After the plan, check which ds skills fit the phase and load them before writing code. | Operator instruction; keeps design, TDD and verification skills in play from the start. |
 | Commit author is DowntownDX; each commit carries a DeepSeek V4.1 Flash co-author trailer. | Operator instruction. |
 | Balance tuning is deferred to Phase 8; `balance-log.md` stays empty until then. | Current numbers are the spec's untested first draft. |
 | `npm run sim` stays a stub until Phase 8. | The bot and pacing run are Phase 8 work. |

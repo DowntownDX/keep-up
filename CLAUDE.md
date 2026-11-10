@@ -10,6 +10,7 @@ Browser idle game. Read docs/spec.md and docs/decisions.md before changing game 
 
 ## Rules
 - Start every phase with the ds-plan-loop skill: write the numbered plan to PLAN.md, get one fresh-context critique, then execute one step at a time and mark each step with its evidence.
+- After the plan, check which ds skills fit the phase and load them (for example ds-design for UI and ds-tdd for engine rules) before writing code.
 - Record every implementation decision in docs/decisions.md with its phase and reason, before building on it.
 - src/engine must not import React, the DOM, or anything from src/ui.
 - Every balance number lives in src/engine/config.ts. No magic numbers elsewhere.
