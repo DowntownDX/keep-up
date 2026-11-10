@@ -49,7 +49,11 @@ describe("workerRate", () => {
   });
 
   it("is zero for an activity that is not implemented yet", () => {
-    expect(workerRate(createWorker("agent-1", "builder"), "build")).toBe(0);
+    expect(workerRate(createWorker("agent-1", "builder"), "clientWork")).toBe(0);
+  });
+
+  it("gives a Builder its 1.6x at Build venture", () => {
+    expect(workerRate(createWorker("agent-1", "builder"), "build")).toBeCloseTo(1.6);
   });
 });
 
@@ -89,5 +93,11 @@ describe("resourceRates", () => {
     const rates = resourceRates(createInitialState());
     expect(rates.followers).toBe(0);
     expect(rates.knowHow).toBe(0);
+  });
+
+  it("adds passive venture income to Cash", () => {
+    const state = createInitialState();
+    state.venturesShipped = 2;
+    expect(resourceRates(state).cash).toBeCloseTo(2, 9);
   });
 });

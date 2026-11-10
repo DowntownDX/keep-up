@@ -25,6 +25,7 @@ export const ACTIVITIES: Partial<Record<ActivityId, ActivityConfig>> = {
   dayJob: { label: "Day job tasks", resource: "cash", basePerSecond: 0.5 },
   content: { label: "Make content", resource: "followers", basePerSecond: 1 },
   learn: { label: "Learn", resource: "knowHow", basePerSecond: 0.2 },
+  build: { label: "Build venture", resource: null, basePerSecond: 1 },
 };
 
 export const WORKER_KINDS = [
@@ -79,3 +80,43 @@ export const STARTING_SUBSCRIPTION_TIER = 1;
 
 /** The engine advances in whole ticks of this length; step() carries the remainder. */
 export const TICK_SECONDS = 1;
+
+export const VENTURE_NAMES = [
+  "Prompt pack",
+  "Newsletter",
+  "Template shop",
+  "Faceless video channel",
+  "Online course",
+  "Browser extension",
+  "Mobile app",
+  "Micro SaaS",
+  "Automation agency",
+  "Product portfolio",
+] as const;
+export const VENTURE_COUNT = VENTURE_NAMES.length;
+
+export const BUILD_POINTS_BASE = 60;
+export const BUILD_POINTS_GROWTH = 5;
+export const BUILD_CREDITS_PER_POINT = 1;
+export const BUILD_KNOWHOW_PER_POINT = 0.2;
+
+export const VENTURE_INCOME_BASE = 0.5;
+export const VENTURE_INCOME_GROWTH = 3;
+
+export const SYSTEMS = [
+  "promptLibrary",
+  "skills",
+  "automations",
+  "audienceFunnel",
+  "teamBonuses",
+] as const;
+export type SystemId = (typeof SYSTEMS)[number];
+
+/** Ventures that must ship before a system turns on. Zero means available at start. */
+export const SYSTEM_UNLOCK_VENTURES: Record<SystemId, number> = {
+  promptLibrary: 0,
+  teamBonuses: 0,
+  skills: 1,
+  automations: 2,
+  audienceFunnel: 3,
+};

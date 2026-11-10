@@ -14,6 +14,7 @@ import {
   type WorkerKind,
 } from "./config";
 import type { GameState, Worker } from "./state";
+import { passiveCashRate } from "./ventures";
 
 export function skillMultiplier(level: number): number {
   return 1 + SKILL_BONUS_PER_LEVEL * (level - 1);
@@ -43,13 +44,17 @@ export function xpToNextLevel(level: number): number {
   return XP_BASE_SECONDS * XP_GROWTH ** (level - 1);
 }
 
-/** Total production per second, by resource. Used by the UI and the sim. */
+/**
+ * Gross production per second, by resource. Build burn is stock-capped rather
+ * than a rate, so it is not subtracted here.
+ */
 export function resourceRates(state: GameState): Record<ResourceId, number> {
   const rates = Object.fromEntries(RESOURCE_IDS.map((id) => [id, 0])) as Record<
     ResourceId,
     number
   >;
   rates.credits = creditRate(state);
+  rates.cash = passiveCashRate(state);
   for (const worker of state.workers) {
     const activity = worker.activity;
     if (!activity) continue;

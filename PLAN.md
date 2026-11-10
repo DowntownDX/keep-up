@@ -1,56 +1,61 @@
-# Phase 1 rework plan
+# Phase 2 plan — ventures
 
-Goal: fix the real defects in the Phase 1 engine and close missing rule tests.
-No Phase 2 work and no new game features.
+Goal: add the Build venture activity, starvation, shipping, passive income and
+unlock flags to the pure engine. No UI.
 
-Baseline: `npm test` 27/27 passed, `npm run build` clean, `git status` clean at `24088a7`.
+Baseline: `npm test` 34/34, `npm run build` clean, `git status` clean at `01bb857`.
 
 ## Steps
 
 - [x] 1. Confirm baseline at HEAD.
-  Check: 27 tests pass, build succeeds, working tree clean. Evidence: done before edits.
+  Check: 34 tests pass, build succeeds, tree clean.
+  Evidence: `npm test` 34/34, `npm run build` clean, only PLAN.md modified.
 
-- [x] 2. Make ticks actually fixed. Add `pendingSeconds` to `GameState`; `step` banks
-  fractional seconds and runs only whole `TICK_SECONDS` ticks. Remove the
-  variable-`dt` path.
-  Check: new tests prove `step(0.5) + step(0.5)` equals `step(1)`, 10 x 0.1s
-  produces one tick, a lone 0.5s step produces nothing, and the existing 60s
-  and 3600s tests still pass.
-  Evidence: `npm test` 30/30 passed, including the three new fractional-step tests.
+- [x] 2. Venture data, state and helpers, plus fix tests that assumed build was
+  unimplemented. Add to `config.ts`: ten venture names, build points 60 with 5x
+  growth, burn 1 Credit and 0.2 Know-how per point, income 0.5 Cash with 3x
+  growth, system unlock map, and a `build` activity entry at 1 point/s. Add
+  `venturesShipped` and `ventureProgress` to `GameState`. Add
+  `src/engine/ventures.ts` with `buildPointsRequired`, `ventureIncome`,
+  `passiveCashRate`, `currentVentureIndex`, `isSystemUnlocked`, `hasWon`.
+  Update `actions.test.ts` to reject `findClients` instead of `build`, and
+  `rates.test.ts` to use an unimplemented activity.
+  Check: `tests/ventures.test.ts` covers venture math, unlock thresholds and the
+  ten-venture list; `npm test` green.
+  Evidence: `tests/ventures.test.ts` 9 tests added; `npm test` 44/44.
 
-- [x] 3. Tighten `assignActivity` so it rejects a key whose config value is
-  `undefined`, not just a missing key.
-  Check: existing "build is not implemented" test still passes; `npm test` green.
-  Evidence: guard now checks `ACTIVITIES[activity] === undefined`; 31 tests pass.
-
-- [x] 4. Remove duplicated config truth: derive `MAX_AGENTS` from
-  `AGENT_KINDS.length`; keep seat costs aligned with it.
-  Check: new config test asserts `AGENT_SEAT_COSTS.length === MAX_AGENTS`;
+- [x] 3. Build, shipping, income and unlocks in `step`. Per tick: add Credits
+  trickle and passive Cash, run every worker's output (build output is capped by
+  stock, burns both resources, and awards XP by fraction of the tick worked),
+  then ship completed ventures once after the worker loop. Building is inert
+  after ten ships. `resourceRates` adds passive Cash and stays gross production.
+  Check: tests cover full-speed burn, half-starved, fully starved, exact-stock
+  boundary, ship venture 1, overflow carry, multi-ship, all-ten inert, unlock
+  flags, income starting after the ship, and 3600s vs 1s while building;
   `npm test` green.
-  Evidence: `tests/config.test.ts` added; 31 tests pass.
+  Evidence: `tests/build.test.ts` 9 tests added; `npm test` 54/54.
 
-- [x] 5. Add missing rule tests: a hired Creator earns Followers at 1.6x through
-  `step`, two workers level independently, and a higher subscription tier raises
-  Credits during `step`.
-  Check: each new test fails if the matching rule is broken; `npm test` green.
-  Evidence: `npm test` 34/34 passed. One wrong test expectation (You kept
-  earning XP after the agent switched) was corrected; the engine was right.
+- [x] 4. Document decisions, run full checks and commit.
+  Check: `docs/spec.md` records auto-ship, overflow, XP fraction, income timing
+  and inert end state; `npm test` and `npm run build` pass; `npm run sim` still
+  runs its stub; commit author DowntownDX with co-author trailer.
+  Evidence: `npm test` 54/54, `npm run build` clean, `npm run sim` prints its
+  phase 8 stub, spec section added, commit verified below.
 
-- [x] 6. Document Phase 1 decisions in `docs/spec.md` (starts idle, one hire per
-  specialist, additive skill bonus, whole-second ticks); fix both tick comments;
-  delete stale `src/engine/.gitkeep`.
-  Check: `git grep -n "fixed ticks"` shows accurate text; `npm run build` green.
-  Evidence: grep found no stale claims; `npm test` 34/34 and build clean after
-  the doc and comment edits.
+## Resolved decisions
 
-- [x] 7. Full verification and commit.
-  Check: `npm test` and `npm run build` pass; `git status` clean; commit author
-  DowntownDX and co-author trailer present.
-  Evidence: `npm test` 34/34, `npm run build` clean, commit author DowntownDX,
-  co-author DeepSeek V4.1 Flash.
+- Shipping is automatic. The spec lists no Ship action.
+- Overflow points carry into the next venture; one tick can ship more than one.
+- Build XP is `tick x (points produced / points possible)`, so the level
+  multiplier cannot compound XP.
+- Passive income starts on the tick after a venture ships.
+- Building after all ten ventures is inert: no burn, no XP, no progress.
+- `resourceRates` reports gross production per resource. Build burn is
+  stock-capped, not a rate, so it is not subtracted there.
 
 ## Out of scope
 
-- `saveVersion` and persistence: Phase 3 owns them. No save exists yet, so the
-  `pendingSeconds` field needs no migration.
-- Edge multiplier, ventures, subscriptions, UI.
+- Follower gates on ventures 6-10 (Phase 6); auto-ship must later halt at a gate.
+- Save serialization (Phase 3). No save code exists yet, so the new fields join
+  the first save format rather than migrating.
+- UI, prompt library, skills, automations, audience funnel effects, Edge.

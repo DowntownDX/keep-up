@@ -28,6 +28,10 @@ export interface GameState {
   nextAgentNumber: number;
   /** Fraction of a tick carried into the next step. */
   pendingSeconds: number;
+  /** Ventures shipped so far; equal to the index of the current venture. */
+  venturesShipped: number;
+  /** Build points put toward the current venture. */
+  ventureProgress: number;
 }
 
 export function createWorker(id: string, kind: WorkerKind): Worker {
@@ -45,5 +49,7 @@ export function createInitialState(): GameState {
     subscriptionTier: STARTING_SUBSCRIPTION_TIER,
     nextAgentNumber: 1,
     pendingSeconds: 0,
+    venturesShipped: 0,
+    ventureProgress: 0,
   };
 }

@@ -19,7 +19,7 @@ describe("assignActivity", () => {
 
   it("rejects an activity that is not implemented yet", () => {
     const state = createInitialState();
-    expect(assignActivity(state, "you", "build")).toBe(false);
+    expect(assignActivity(state, "you", "findClients")).toBe(false);
     expect(state.workers[0].activity).toBeNull();
   });
 });

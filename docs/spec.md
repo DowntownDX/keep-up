@@ -150,3 +150,15 @@ These settle rules the design above leaves open:
   12% of base output.
 - The engine advances in whole one-second ticks. A partial second is stored in
   the save and applied on a later step.
+
+## Venture decisions (Phase 2)
+
+- Shipping is automatic when a venture reaches its build requirement. Overflow
+  points carry into the next venture, so one tick can ship more than one.
+- Build XP accrues in proportion to the fraction of a tick actually worked. A
+  fully starved builder gains no XP.
+- The Credits trickle lands before the tick's build burn is checked.
+- Passive Cash starts on the tick after a venture ships.
+- Building is inert after the tenth venture ships.
+- The rate helper reports gross production only. Build burn is stock-capped
+  rather than a rate, so it is not subtracted there.
