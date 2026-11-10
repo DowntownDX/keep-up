@@ -6,6 +6,7 @@ import {
   CLIENT_CREDITS_PER_LEAD,
 } from "./config";
 import { workerRate, xpToNextLevel } from "./rates";
+import { cashGain } from "./releases";
 import type { GameState, Skill, Worker } from "./state";
 import { buildPointsRequired, hasWon, isVentureGated } from "./ventures";
 
@@ -34,7 +35,9 @@ export function workWorker(state: GameState, worker: Worker, seconds: number): b
   }
 
   if (config.resource) {
-    state.resources[config.resource] += workerRate(state, worker, activity) * seconds;
+    const produced = workerRate(state, worker, activity) * seconds;
+    state.resources[config.resource] +=
+      config.resource === "cash" ? cashGain(state, produced) : produced;
   }
   earnXp(worker.skills[activity], seconds);
   return true;
@@ -76,13 +79,15 @@ export function applyBuild(
 }
 
 export interface ClientApplication {
+  /** Base Cash before Edge; the XP proportion uses this, not the payout. */
   cash: number;
   desiredCash: number;
 }
 
 /**
  * Client work turns Leads into Cash. Credits and Leads both cap the work, so a
- * worker stops when either stock runs out.
+ * worker stops when either stock runs out. Edge raises the Cash paid per Lead
+ * but never the Leads handled or Credits burned.
  */
 export function applyClientWork(
   state: GameState,
@@ -99,7 +104,7 @@ export function applyClientWork(
   if (cash <= 0) return null;
 
   const handled = cash / CLIENT_CASH_PER_LEAD;
-  state.resources.cash += cash;
+  state.resources.cash += cashGain(state, cash);
   state.resources.leads = Math.max(0, state.resources.leads - handled);
   state.resources.credits = Math.max(
     0,

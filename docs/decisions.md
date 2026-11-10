@@ -121,9 +121,25 @@ All Phase 0-3 decisions were made on 2026-11-10.
 | Save version 5 adds `worker.automation`; version 4 migrates every worker to null. | Save shape change; migration and validation are mandatory. |
 | Agent cards get a Record/Update automation control once the system unlocks; the venture card and Build buttons show the Follower gate. | Players need to see why building is blocked. |
 
+## Phase 7 — release clock, subscriptions and Edge
+
+| Decision | Why |
+| --- | --- |
+| The release clock is game time in `state.elapsedSeconds`, advanced once per tick before production. Clicks and the screen never advance it. | Keeps the engine pure; a release that lands on a tick sets Edge for that same tick's production. |
+| Generation 1 is out at zero, generation 2 at 150 seconds, each later interval 3x longer, ten generations in total. | Straight from the spec's release table; the schedule derives from the base, growth and count instead of ten literals. |
+| Edge multiplies Cash earned only: day job, Client work payout, cash automations and passive venture income. It does not scale spend, the starting stock or other resources. | The spec says Edge multiplies all Cash you earn; applying it to costs would make upgrading self-defeating. |
+| `cashGain(state, amount)` in `releases.ts` is the one Edge multiplier; `resourceRates` and the venture card use it too. | Displayed and paid Cash cannot drift when there is one multiplier point. |
+| Client work still handles Leads by volume and burns 5 Credits per Lead; Edge raises only the Cash paid per Lead, and XP uses handled volume. | Scaling the handled volume would mint free Leads and Credits and pay bonus XP. |
+| Automation snapshots stay in activity units and exclude Edge; Edge scales the Cash when the automation runs. | Re-recording must not freeze the multiplier, and a fixed snapshot must not bake it in. |
+| The free starting subscription is generation 1, the latest at time zero, so a fresh game earns 1.5x Edge. Existing Cash expectations shift by 1.5x. | "1.5x on the latest model"; Phase 8 re-tunes the resulting balance. |
+| A subscription can only rise to a released generation. Cost is 50 Cash times 6 per tier, and tier ten is the cap. | A release does nothing until paid for; ten generations means ten tiers. |
+| Save version 6 adds `elapsedSeconds`; version 5 migrates at the saved tier's release time. | Save shape change; migration and tests are mandatory, and an existing tier must stay valid. |
+| Validation rejects negative or non-finite elapsed time, a tier above the latest release and a tier above ten. | A tier ahead of the clock or past the model count is impossible. |
+| The timeline and news feed name generations, not labs. | Lab names remain an open operator decision. |
+| The release card sits after the venture card in the side column. | The arms race is the second global system and belongs next to venture progress. |
+
 ## Still open
 
-- Phase 7: release clock, subscription tiers, Edge, tier cap.
 - Phase 8: sim bot, pacing, balance log.
 - Phase 9: polish, reset, guide, deploy.
 - Operator decisions from the build plan: name, fictional labs, quitting the day

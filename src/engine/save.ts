@@ -1,6 +1,7 @@
 import {
   ACTIVITIES,
   ACTIVITY_IDS,
+  MAX_SUBSCRIPTION_TIER,
   RESOURCE_IDS,
   SYSTEM_UNLOCK_VENTURES,
   TICK_SECONDS,
@@ -9,10 +10,11 @@ import {
   type ActivityId,
   type WorkerKind,
 } from "./config";
+import { latestGeneration, releaseTime } from "./releases";
 import type { GameState, Skill, Worker } from "./state";
 import { buildPointsRequired, followersRequired } from "./ventures";
 
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
 
 export interface LoadedSave {
   state: GameState;
@@ -51,7 +53,21 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
         : save.state.workers,
     },
   }),
+  5: (save) => ({
+    ...save,
+    state: {
+      ...save.state,
+      elapsedSeconds: releasedElapsedForTier(save.state.subscriptionTier),
+    },
+  }),
 };
+
+/** A saved tier must stay valid, so its releases count as already seen. */
+function releasedElapsedForTier(tier: unknown): number {
+  if (typeof tier !== "number" || !Number.isInteger(tier)) return 0;
+  if (tier < 1 || tier > MAX_SUBSCRIPTION_TIER) return 0;
+  return releaseTime(tier);
+}
 
 export function serializeGame(state: GameState, savedAt: number): string {
   if (!Number.isFinite(savedAt) || savedAt < 0) {
@@ -62,6 +78,7 @@ export function serializeGame(state: GameState, savedAt: number): string {
     workers: state.workers,
     subscriptionTier: state.subscriptionTier,
     nextAgentNumber: state.nextAgentNumber,
+    elapsedSeconds: state.elapsedSeconds,
     pendingSeconds: state.pendingSeconds,
     venturesShipped: state.venturesShipped,
     ventureProgress: state.ventureProgress,
@@ -191,7 +208,12 @@ function isValidState(value: unknown): value is GameState {
   }
   if (youCount !== 1) return false;
 
+  const elapsedSeconds = value.elapsedSeconds;
+  if (!isFiniteNumber(elapsedSeconds) || elapsedSeconds < 0) return false;
+
   if (!isIntegerAtLeast(value.subscriptionTier, 1)) return false;
+  if (value.subscriptionTier > MAX_SUBSCRIPTION_TIER) return false;
+  if (value.subscriptionTier > latestGeneration({ elapsedSeconds })) return false;
   if (!isIntegerAtLeast(value.nextAgentNumber, 1)) return false;
   if (value.nextAgentNumber <= maxAgentNumber) return false;
   if (!isIntegerAtLeast(value.promptLevel, 0)) return false;

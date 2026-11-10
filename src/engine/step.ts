@@ -35,6 +35,9 @@ export function stepOffline(state: GameState, elapsedSeconds: number): GameState
 }
 
 function tick(state: GameState): void {
+  // The clock moves before production, so a release landing on this tick
+  // already sets Edge for it.
+  state.elapsedSeconds += TICK_SECONDS;
   state.resources.credits += creditRate(state) * TICK_SECONDS;
   state.resources.cash += passiveCashRate(state) * TICK_SECONDS;
   state.resources.leads += audienceFunnelRate(state) * TICK_SECONDS;

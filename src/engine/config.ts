@@ -143,6 +143,19 @@ export const FOLLOWER_GATE_START_INDEX = 5;
 export const FOLLOWER_GATE_BASE = 5_000;
 export const FOLLOWER_GATE_GROWTH = 6;
 
+/** Model generations in the arms race, one subscription tier each. */
+export const MODEL_COUNT = 10;
+/** Seconds of game time before generation 2 arrives. */
+export const FIRST_RELEASE_SECONDS = 150;
+/** Each later generation takes this much longer than the one before. */
+export const RELEASE_INTERVAL_GROWTH = 3;
+
+/** Cash multiplier by generations behind the latest release; the last entry is the floor. */
+export const EDGE_MULTIPLIERS: readonly number[] = [1.5, 1.25, 1.1, 1, 0.9];
+export const SUBSCRIPTION_UPGRADE_BASE_COST = 50;
+export const SUBSCRIPTION_UPGRADE_COST_GROWTH = 6;
+export const MAX_SUBSCRIPTION_TIER = MODEL_COUNT;
+
 export const SYSTEMS = [
   "promptLibrary",
   "skills",

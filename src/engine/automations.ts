@@ -1,5 +1,6 @@
 import { ACTIVITIES, AUTOMATION_FRACTION } from "./config";
 import { workerRate } from "./rates";
+import { cashGain } from "./releases";
 import type { GameState, Worker } from "./state";
 import { isSystemUnlocked } from "./ventures";
 import { applyBuild, applyClientWork } from "./work";
@@ -39,6 +40,8 @@ export function applyAutomation(state: GameState, worker: Worker, seconds: numbe
   }
 
   if (config.resource) {
-    state.resources[config.resource] += automation.rate * seconds;
+    const produced = automation.rate * seconds;
+    state.resources[config.resource] +=
+      config.resource === "cash" ? cashGain(state, produced) : produced;
   }
 }

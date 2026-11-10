@@ -29,7 +29,7 @@ describe("doItYourself", () => {
 
     const dayJob = gameWithYouOn("dayJob");
     doItYourself(dayJob, "you");
-    expect(dayJob.resources.cash).toBeCloseTo(15.9, 9);
+    expect(dayJob.resources.cash).toBeCloseTo(15 + 1.5 * 0.6 * 1.5, 9);
   });
 
   it("burns Credits and Know-how when building", () => {

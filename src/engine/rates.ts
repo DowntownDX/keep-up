@@ -24,6 +24,7 @@ import {
   type ResourceId,
   type WorkerKind,
 } from "./config";
+import { cashGain } from "./releases";
 import type { GameState, Worker } from "./state";
 import { audienceFunnelRate, hasWon, isVentureGated, passiveCashRate } from "./ventures";
 
@@ -114,11 +115,12 @@ export function resourceRates(state: GameState): Record<ResourceId, number> {
     const config = ACTIVITIES[activity];
     if (!config) continue;
     if (activity === "clientWork") {
-      rates.cash += workerRate(state, worker, activity) * CLIENT_CASH_PER_LEAD;
+      rates.cash += cashGain(state, workerRate(state, worker, activity) * CLIENT_CASH_PER_LEAD);
       continue;
     }
     if (config.resource) {
-      rates[config.resource] += workerRate(state, worker, activity);
+      const produced = workerRate(state, worker, activity);
+      rates[config.resource] += config.resource === "cash" ? cashGain(state, produced) : produced;
     }
   }
   for (const worker of state.workers) {
@@ -127,11 +129,12 @@ export function resourceRates(state: GameState): Record<ResourceId, number> {
     const config = ACTIVITIES[automation.activity];
     if (!config) continue;
     if (automation.activity === "clientWork") {
-      rates.cash += automation.rate * CLIENT_CASH_PER_LEAD;
+      rates.cash += cashGain(state, automation.rate * CLIENT_CASH_PER_LEAD);
       continue;
     }
     if (config.resource) {
-      rates[config.resource] += automation.rate;
+      rates[config.resource] +=
+        config.resource === "cash" ? cashGain(state, automation.rate) : automation.rate;
     }
   }
   return rates;

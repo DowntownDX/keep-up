@@ -8,6 +8,7 @@ import {
   type AgentKind,
 } from "./config";
 import { promptCost, skillsCost } from "./rates";
+import { canUpgradeSubscription, subscriptionUpgradeCost } from "./releases";
 import { createWorker, type GameState } from "./state";
 import { shipCompletedVentures, workWorker } from "./work";
 
@@ -76,5 +77,18 @@ export function buySkills(state: GameState): boolean {
   if (state.resources.knowHow < cost) return false;
   state.resources.knowHow -= cost;
   state.skillsLevel += 1;
+  return true;
+}
+
+/**
+ * Upgrade to the next subscription tier once that generation is out. One tier
+ * per payment; nothing changes when it is unreleased, capped or unaffordable.
+ */
+export function upgradeSubscription(state: GameState): boolean {
+  if (!canUpgradeSubscription(state)) return false;
+  const cost = subscriptionUpgradeCost(state.subscriptionTier);
+  if (cost === null || state.resources.cash < cost) return false;
+  state.resources.cash -= cost;
+  state.subscriptionTier += 1;
   return true;
 }

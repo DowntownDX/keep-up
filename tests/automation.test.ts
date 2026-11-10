@@ -102,7 +102,7 @@ describe("running", () => {
 
     step(state, 10);
 
-    expect(state.resources.cash).toBeCloseTo(15 + 20 + 12.8, 9);
+    expect(state.resources.cash).toBeCloseTo(15 + (20 + 12.8) * 1.5, 9);
     expect(state.resources.leads).toBeCloseTo(98.4, 9);
     expect(state.resources.credits).toBeCloseTo(102, 9);
     expect(state.workers[1].skills.clientWork.xp).toBe(0);

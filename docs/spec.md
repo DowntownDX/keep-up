@@ -176,3 +176,17 @@ unlocks after venture 3 and makes 1 Lead per second per 2,000 Followers.
 
 Ventures 6 to 10 require Followers to launch: 5,000 at venture 6, growing 6x per
 venture. Building, burn and shipping wait until the count is met.
+
+## Release clock, subscriptions and Edge (Phase 7)
+
+The labs release ten model generations on game time. Generation 1 is current at
+the start, generation 2 arrives after 150 seconds, and each later one takes
+three times as long as the interval before it. A release does nothing for you
+until you pay Cash to upgrade: tier 2 costs 50 Cash, growing 6x per tier, and
+tier 10 is the cap.
+
+Edge is how close your subscription is to the latest release. It multiplies all
+Cash you earn: 1.5x on the latest generation, 1.25x one behind, 1.1x two behind,
+1x three behind and 0.9x four or more behind. It never changes what you spend
+or the other resources. The screen shows the generation timeline, the next
+release countdown, the current Edge and a release news feed.

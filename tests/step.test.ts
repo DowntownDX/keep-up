@@ -28,7 +28,7 @@ describe("step", () => {
   it("pays day job cash at the You rate", () => {
     const state = gameWithYouOn("dayJob");
     step(state, 10);
-    expect(state.resources.cash).toBeCloseTo(15 + 10 * 0.6, 9);
+    expect(state.resources.cash).toBeCloseTo(15 + 10 * 0.6 * 1.5, 9);
   });
 
   it("gives a hired Creator the 1.6x content rate through step", () => {
@@ -70,6 +70,7 @@ describe("step", () => {
 
   it("raises the Credits trickle with subscription tier", () => {
     const state = gameWithYouOn("content");
+    state.elapsedSeconds = 600;
     state.subscriptionTier = 3;
 
     step(state, 10);
@@ -97,7 +98,7 @@ describe("step", () => {
     expect(state.workers[0].skills.content.xp).toBeCloseTo(5, 9);
     expect(state.workers[0].skills.dayJob.level).toBe(1);
     expect(state.workers[0].skills.dayJob.xp).toBeCloseTo(10, 9);
-    expect(state.resources.cash).toBeCloseTo(15 + 6, 9);
+    expect(state.resources.cash).toBeCloseTo(15 + 6 * 1.5, 9);
     expect(state.resources.followers).toBeCloseTo(24.72, 9);
   });
 

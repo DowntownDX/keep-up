@@ -33,6 +33,8 @@ export interface GameState {
   workers: Worker[];
   subscriptionTier: number;
   nextAgentNumber: number;
+  /** Game time since the run started; drives the model release clock. */
+  elapsedSeconds: number;
   /** Fraction of a tick carried into the next step. */
   pendingSeconds: number;
   /** Ventures shipped so far; equal to the index of the current venture. */
@@ -59,6 +61,7 @@ export function createInitialState(): GameState {
     workers: [createWorker("you", "you")],
     subscriptionTier: STARTING_SUBSCRIPTION_TIER,
     nextAgentNumber: 1,
+    elapsedSeconds: 0,
     pendingSeconds: 0,
     venturesShipped: 0,
     ventureProgress: 0,

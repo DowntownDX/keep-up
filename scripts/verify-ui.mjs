@@ -41,8 +41,17 @@ try {
 
   const followers = () => page.locator('[data-resource="followers"] .resource-value').innerText();
   const cash = () => page.locator('[data-resource="cash"] .resource-value').innerText();
+  const releasePanel = page.locator(".release");
+  const edgeBadge = page.locator(".edge-badge");
 
   assert.equal(await followers(), "0");
+  assert.match(await page.locator(".release-generation").innerText(), /Generation 1 of 10/);
+  assert.match(await edgeBadge.innerText(), /×1\.5/);
+  assert.equal(
+    await page.getByRole("button", { name: /Upgrade subscription/ }).isDisabled(),
+    true,
+    "the first upgrade should be unaffordable at the starting 15 Cash",
+  );
 
   const you = page.getByRole("article", { name: "You" });
   assert.equal(await you.getByRole("button", { name: /Find clients/ }).isDisabled(), true);
@@ -77,7 +86,7 @@ try {
   const saved = await page.evaluate(() => localStorage.getItem("keep-up.save"));
   assert.ok(saved, "autosave should write to localStorage");
   const parsed = JSON.parse(saved);
-  assert.equal(parsed.version, 5);
+  assert.equal(parsed.version, 6);
   assert.equal(parsed.state.workers.length, 2);
 
   await page.reload({ waitUntil: "networkidle" });
@@ -105,11 +114,34 @@ try {
     data.savedAt = Date.now();
     data.state.venturesShipped = 2;
     data.state.ventureProgress = 0;
+    data.state.elapsedSeconds = 150;
+    data.state.resources.cash = 100;
+    data.state.resources.knowHow = 20;
     return JSON.stringify(data);
   });
   await page.addInitScript((save) => localStorage.setItem("keep-up.save", save), seededSave);
   await page.reload({ waitUntil: "networkidle" });
   await page.getByRole("heading", { name: "Template shop" }).waitFor();
+
+  assert.match(await page.locator(".release-generation").innerText(), /Generation 2 of 10/);
+  assert.match(await edgeBadge.innerText(), /×1\.25/);
+  assert.match(await releasePanel.innerText(), /Generation 2 is live/);
+  assert.equal(await page.locator("[data-credits-rate]").getAttribute("data-credits-rate"), "1");
+
+  await releasePanel.getByRole("button", { name: /Upgrade subscription/ }).click();
+  await page.waitForTimeout(300);
+  assert.match(await releasePanel.innerText(), /Tier 2 of 10/);
+  assert.match(await edgeBadge.innerText(), /×1\.5/);
+  assert.equal(
+    await page.locator("[data-credits-rate]").getAttribute("data-credits-rate"),
+    "1.5",
+  );
+  const cashAfterUpgrade = Number(await cash());
+  assert.ok(
+    cashAfterUpgrade >= 50 && cashAfterUpgrade < 60,
+    `the upgrade should charge 50 Cash, got ${cashAfterUpgrade}`,
+  );
+  const edgeAfterUpgrade = (await edgeBadge.innerText()).trim();
 
   const followersBeforeAutomation = Number(await followers());
   await creator.getByRole("button", { name: /Record automation/ }).click();
@@ -171,6 +203,7 @@ try {
   });
   await mobilePage.goto(url, { waitUntil: "networkidle" });
   await mobilePage.getByRole("heading", { name: "Keep Up", level: 1 }).waitFor();
+  assert.equal(await mobilePage.locator(".timeline li").count(), 10);
 
   const mobileOverflow = await mobilePage.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -215,6 +248,7 @@ try {
       {
         desktop: { followersAfterTick, followersAfterClick, minButton, overflow: desktopOverflow },
         mobile: { overflow: mobileOverflow },
+        release: { generationAtSeed: 2, edgeAfterUpgrade, cashAfterUpgrade },
         screenshots: ["artifacts/desktop.png", "artifacts/mobile.png"],
       },
       null,

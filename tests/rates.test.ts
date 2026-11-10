@@ -105,7 +105,7 @@ describe("resourceRates", () => {
   it("adds passive venture income to Cash", () => {
     const state = createInitialState();
     state.venturesShipped = 2;
-    expect(resourceRates(state).cash).toBeCloseTo(2, 9);
+    expect(resourceRates(state).cash).toBeCloseTo(3, 9);
   });
 });
 

@@ -1,4 +1,5 @@
 import { HirePanel } from "./HirePanel";
+import { ReleaseCard } from "./ReleaseCard";
 import { ResourceBar } from "./ResourceBar";
 import { UpgradeCard } from "./UpgradeCard";
 import { useGame } from "./useGame";
@@ -6,7 +7,17 @@ import { VentureCard } from "./VentureCard";
 import { WorkerCard } from "./WorkerCard";
 
 export function Game() {
-  const { state, saveError, assign, hire, active, automate, buyPrompt, buySkills } = useGame();
+  const {
+    state,
+    saveError,
+    assign,
+    hire,
+    active,
+    automate,
+    buyPrompt,
+    buySkills,
+    upgradeSubscription,
+  } = useGame();
 
   return (
     <div className="shell">
@@ -44,6 +55,7 @@ export function Game() {
 
         <aside className="side" aria-label="Venture, upgrades and hiring">
           <VentureCard state={state} />
+          <ReleaseCard state={state} onUpgrade={upgradeSubscription} />
           <UpgradeCard state={state} onBuyPrompt={buyPrompt} onBuySkills={buySkills} />
           <HirePanel state={state} onHire={hire} />
         </aside>

@@ -49,7 +49,7 @@ describe("Client work", () => {
 
     step(state, 10);
 
-    expect(state.resources.cash).toBeCloseTo(15 + 19.2 + 5, 9);
+    expect(state.resources.cash).toBeCloseTo(15 + (19.2 + 5) * 1.5, 9);
     expect(state.resources.leads).toBeCloseTo(10 - 2.4, 9);
     expect(state.resources.credits).toBeCloseTo(100 + 10 - 12, 9);
     expect(state.workers[0].skills.clientWork.xp).toBeCloseTo(10, 9);
@@ -62,7 +62,7 @@ describe("Client work", () => {
 
     step(state, 10);
 
-    expect(state.resources.cash).toBeCloseTo(15 + 0.8 + 5, 9);
+    expect(state.resources.cash).toBeCloseTo(15 + (0.8 + 5) * 1.5, 9);
     expect(state.resources.leads).toBeCloseTo(0, 9);
     expect(state.resources.credits).toBeCloseTo(100 + 10 - 0.5, 9);
     expect(state.workers[0].skills.clientWork.xp).toBeCloseTo(10 * (0.8 / 19.2), 9);
@@ -75,7 +75,7 @@ describe("Client work", () => {
 
     step(state, 1);
 
-    expect(state.resources.cash).toBeCloseTo(15 + 1.6 + 0.5, 9);
+    expect(state.resources.cash).toBeCloseTo(15 + (1.6 + 0.5) * 1.5, 9);
     expect(state.resources.leads).toBeCloseTo(10 - 0.2, 9);
     expect(state.resources.credits).toBeCloseTo(0, 9);
     expect(state.workers[0].skills.clientWork.xp).toBeCloseTo(1.6 / 1.92, 9);
@@ -94,7 +94,7 @@ describe("Client work", () => {
 
   it("shows Cash production and the Leads and Credits demand", () => {
     const state = unlocked("clientWork");
-    expect(resourceRates(state).cash).toBeCloseTo(1.92 + 0.5, 9);
+    expect(resourceRates(state).cash).toBeCloseTo((1.92 + 0.5) * 1.5, 9);
     const net = resourceNetRates(state);
     expect(net.leads).toBeCloseTo(-0.24, 9);
     expect(net.credits).toBeCloseTo(1 - 1.2, 9);

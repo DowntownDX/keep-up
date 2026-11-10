@@ -53,6 +53,22 @@ const V4_SAVE = JSON.stringify({
   },
 });
 
+const V4_STATE = (
+  JSON.parse(V4_SAVE) as {
+    state: Record<string, unknown> & { workers: Record<string, unknown>[] };
+  }
+).state;
+
+const V5_SAVE = JSON.stringify({
+  version: 5,
+  savedAt: 1_700_000_000_000,
+  state: {
+    ...V4_STATE,
+    subscriptionTier: 2,
+    workers: V4_STATE.workers.map((worker) => ({ ...worker, automation: null })),
+  },
+});
+
 function payload(version: number, state: unknown, savedAt?: unknown): string {
   const envelope: Record<string, unknown> = { version, state };
   if (savedAt !== undefined) envelope.savedAt = savedAt;
@@ -68,6 +84,7 @@ function richState(): GameState {
   state.workers[1].activity = "content";
   state.workers[0].skills.content = { level: 3, xp: 7.5 };
   state.workers[1].skills.content = { level: 2, xp: 1.25 };
+  state.elapsedSeconds = 600;
   state.pendingSeconds = 0.4;
   state.venturesShipped = 2;
   state.ventureProgress = 12.5;
@@ -79,7 +96,7 @@ function richState(): GameState {
 
 describe("save format", () => {
   it("writes the current version, timestamp and state", () => {
-    expect(SAVE_VERSION).toBe(5);
+    expect(SAVE_VERSION).toBe(6);
     const parsed = JSON.parse(serializeGame(createInitialState(), 1_700_000_000_000)) as {
       version: number;
       savedAt: number;
@@ -88,6 +105,7 @@ describe("save format", () => {
     expect(parsed.version).toBe(SAVE_VERSION);
     expect(parsed.savedAt).toBe(1_700_000_000_000);
     expect(parsed.state.venturesShipped).toBe(0);
+    expect(parsed.state.elapsedSeconds).toBe(0);
     expect(parsed.state.promptLevel).toBe(0);
     expect(parsed.state.workers[0].automation).toBeNull();
     expect(parsed.state.resources.cash).toBe(15);
@@ -115,6 +133,7 @@ describe("migration", () => {
     expect(loaded.state.ventureProgress).toBe(0);
     expect(loaded.state.promptLevel).toBe(0);
     expect(loaded.state.skillsLevel).toBe(0);
+    expect(loaded.state.elapsedSeconds).toBe(0);
     expect(loaded.state.resources.cash).toBe(42.5);
     expect(loaded.state.workers[0].skills.content).toEqual({ level: 2, xp: 5 });
     expect(loaded.state.workers[0].activity).toBe("content");
@@ -149,6 +168,16 @@ describe("migration", () => {
 
     expect(loaded.state.promptLevel).toBe(1);
     expect(loaded.state.skillsLevel).toBe(2);
+    expect(loaded.state.workers[0].automation).toBeNull();
+  });
+
+  it("loads a version 5 save and dates the clock to its subscription tier", () => {
+    const loaded = loadGame(V5_SAVE);
+    if (loaded === null) throw new Error("version 5 save should load");
+
+    expect(loaded.state.subscriptionTier).toBe(2);
+    expect(loaded.state.elapsedSeconds).toBe(150);
+    expect(loaded.state.promptLevel).toBe(1);
     expect(loaded.state.workers[0].automation).toBeNull();
   });
 
@@ -235,6 +264,34 @@ describe("invalid saves", () => {
 
     state.pendingSeconds = 1;
     expect(loadGame(payload(SAVE_VERSION, state, 1_000))).toBeNull();
+  });
+
+  it("rejects a missing, negative or non-finite elapsed time", () => {
+    const missing = structuredClone(createInitialState()) as unknown as Record<string, unknown>;
+    delete missing.elapsedSeconds;
+    expect(loadGame(payload(SAVE_VERSION, missing, 1_000))).toBeNull();
+
+    const negative = structuredClone(createInitialState());
+    negative.elapsedSeconds = -1;
+    expect(loadGame(payload(SAVE_VERSION, negative, 1_000))).toBeNull();
+
+    const infinite = structuredClone(createInitialState());
+    infinite.elapsedSeconds = Number.POSITIVE_INFINITY;
+    expect(loadGame(payload(SAVE_VERSION, infinite, 1_000))).toBeNull();
+  });
+
+  it("rejects a subscription tier ahead of the clock or above ten", () => {
+    const ahead = structuredClone(createInitialState());
+    ahead.subscriptionTier = 2;
+    expect(loadGame(payload(SAVE_VERSION, ahead, 1_000))).toBeNull();
+
+    ahead.elapsedSeconds = 150;
+    expect(loadGame(payload(SAVE_VERSION, ahead, 1_000))).not.toBeNull();
+
+    const past = structuredClone(createInitialState());
+    past.subscriptionTier = 11;
+    past.elapsedSeconds = Number.MAX_SAFE_INTEGER;
+    expect(loadGame(payload(SAVE_VERSION, past, 1_000))).toBeNull();
   });
 
   it("rejects a stale next agent number", () => {

@@ -11,6 +11,7 @@ import {
   VENTURE_INCOME_GROWTH,
   type SystemId,
 } from "./config";
+import { cashGain } from "./releases";
 import type { GameState } from "./state";
 
 /** Build points needed to ship the venture at this zero-based index. */
@@ -28,7 +29,7 @@ export function passiveCashRate(state: GameState): number {
   for (let index = 0; index < state.venturesShipped; index += 1) {
     total += ventureIncome(index);
   }
-  return total;
+  return cashGain(state, total);
 }
 
 export function currentVentureIndex(state: GameState): number | null {

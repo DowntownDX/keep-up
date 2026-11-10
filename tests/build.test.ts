@@ -67,14 +67,14 @@ describe("build venture", () => {
     expect(state.venturesShipped).toBe(1);
     expect(state.ventureProgress).toBeGreaterThan(0);
     expect(state.ventureProgress).toBeLessThan(300);
-    expect(passiveCashRate(state)).toBeCloseTo(0.5, 9);
+    expect(passiveCashRate(state)).toBeCloseTo(0.75, 9);
     expect(isSystemUnlocked(state, "skills")).toBe(true);
     expect(isSystemUnlocked(state, "automations")).toBe(false);
     expect(hasWon(state)).toBe(false);
 
     const cashBefore = state.resources.cash;
     step(state, 10);
-    expect(state.resources.cash - cashBefore).toBeCloseTo(5, 9);
+    expect(state.resources.cash - cashBefore).toBeCloseTo(7.5, 9);
   });
 
   it("carries overflow into the next venture and starts income next tick", () => {
@@ -88,7 +88,7 @@ describe("build venture", () => {
     expect(state.resources.cash).toBe(15);
 
     step(state, 1);
-    expect(state.resources.cash).toBeCloseTo(15.5, 9);
+    expect(state.resources.cash).toBeCloseTo(15.75, 9);
   });
 
   it("can ship twice in one tick when overflow covers the next venture", () => {

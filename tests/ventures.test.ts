@@ -38,7 +38,7 @@ describe("passiveCashRate", () => {
   it("sums the income of every shipped venture", () => {
     const state = createInitialState();
     state.venturesShipped = 3;
-    expect(passiveCashRate(state)).toBeCloseTo(6.5, 9);
+    expect(passiveCashRate(state)).toBeCloseTo(9.75, 9);
   });
 });
 

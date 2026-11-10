@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { addAgent, assignActivity, buyPrompt, buySkills, doItYourself } from "../engine/actions";
+import {
+  addAgent,
+  assignActivity,
+  buyPrompt,
+  buySkills,
+  doItYourself,
+  upgradeSubscription,
+} from "../engine/actions";
 import { recordAutomation } from "../engine/automations";
 import type { ActivityId, AgentKind } from "../engine/config";
 import { createInitialState, type GameState } from "../engine/state";
@@ -26,6 +33,7 @@ export interface GameController {
   automate: (workerId: string) => void;
   buyPrompt: () => void;
   buySkills: () => void;
+  upgradeSubscription: () => void;
 }
 
 export function useGame(): GameController {
@@ -121,6 +129,9 @@ export function useGame(): GameController {
   const buySkillsLevel = useCallback(() => {
     mutate((draft) => buySkills(draft));
   }, [mutate]);
+  const upgrade = useCallback(() => {
+    mutate((draft) => upgradeSubscription(draft));
+  }, [mutate]);
 
   return {
     state,
@@ -131,5 +142,6 @@ export function useGame(): GameController {
     automate,
     buyPrompt: buyPromptLevel,
     buySkills: buySkillsLevel,
+    upgradeSubscription: upgrade,
   };
 }

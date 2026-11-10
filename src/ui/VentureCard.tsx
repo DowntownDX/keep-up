@@ -1,4 +1,5 @@
 import { VENTURE_COUNT, VENTURE_NAMES } from "../engine/config";
+import { cashGain } from "../engine/releases";
 import type { GameState } from "../engine/state";
 import {
   buildPointsRequired,
@@ -75,7 +76,7 @@ export function VentureCard({ state }: { state: GameState }) {
         </div>
         <div>
           <dt>Next ship adds</dt>
-          <dd>+{formatAmount(ventureIncome(index))} Cash/s</dd>
+          <dd>+{formatAmount(cashGain(state, ventureIncome(index)))} Cash/s</dd>
         </div>
       </dl>
 
