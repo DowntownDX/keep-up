@@ -1,6 +1,6 @@
 # Keep Up
 
-Browser idle game. Read docs/spec.md before changing game rules.
+Browser idle game. Read docs/spec.md and docs/decisions.md before changing game rules.
 
 ## Commands
 - npm run dev      local preview
@@ -10,6 +10,7 @@ Browser idle game. Read docs/spec.md before changing game rules.
 
 ## Rules
 - Start every phase with the ds-plan-loop skill: write the numbered plan to PLAN.md, get one fresh-context critique, then execute one step at a time and mark each step with its evidence.
+- Record every implementation decision in docs/decisions.md with its phase and reason, before building on it.
 - src/engine must not import React, the DOM, or anything from src/ui.
 - Every balance number lives in src/engine/config.ts. No magic numbers elsewhere.
 - Engine functions take state and return or mutate state. No timers, no Date.now() inside the engine; time is passed in.

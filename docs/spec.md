@@ -140,40 +140,8 @@ A good run also has the player fall behind the latest model at least twice and
 catch up. If Edge is always at its maximum or always at its floor, change the
 release pace or upgrade costs in `config.ts`.
 
-## Engine decisions for version 1
+## Implementation decisions
 
-These settle rules the design above leaves open:
-
-- The player starts alone and idle, with no activity selected.
-- Each agent kind can be hired once. The five kinds fill the five seats.
-- Skill bonuses are additive: level 1 is 1x output, and each level above adds
-  12% of base output.
-- The engine advances in whole one-second ticks. A partial second is stored in
-  the save and applied on a later step.
-
-## Venture decisions (Phase 2)
-
-- Shipping is automatic when a venture reaches its build requirement. Overflow
-  points carry into the next venture, so one tick can ship more than one.
-- Build XP accrues in proportion to the fraction of a tick actually worked. A
-  fully starved builder gains no XP.
-- The Credits trickle lands before the tick's build burn is checked.
-- Passive Cash starts on the tick after a venture ships.
-- Building is inert after the tenth venture ships.
-- The rate helper reports gross production only. Build burn is stock-capped
-  rather than a rate, so it is not subtracted there.
-
-## Save and offline decisions (Phase 3)
-
-- Saves are an envelope of `{ version, state }`. The current version is 2.
-  Version 1 is the Phase 1 state shape and migrates by adding zeroed venture
-  fields.
-- A save that fails to parse, migrate or validate returns null. Absent and
-  corrupt saves are not distinguished yet.
-- Validation rejects impossible states: negative or non-finite resources, a
-  missing skill, duplicate worker ids or agent kinds, `pendingSeconds >= 1`, a
-  stale `nextAgentNumber`, and venture progress at or above the requirement.
-- Offline time is capped at eight hours and runs through the normal engine at
-  full speed. Non-positive or non-finite elapsed time is ignored.
-- `stepOffline` has no separate chunk loop: `step` already advances in fixed
-  one-second ticks.
+Rules the design leaves open are recorded in
+[docs/decisions.md](decisions.md): starting state, tick model, venture shipping,
+save policy and offline behaviour. Read it before changing engine behaviour.
