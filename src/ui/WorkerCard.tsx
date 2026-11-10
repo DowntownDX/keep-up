@@ -1,23 +1,25 @@
+import { isActivityUnlocked } from "../engine/actions";
 import {
   ACTIVITIES,
   ACTIVE_CLICK_SECONDS,
   ACTIVITY_IDS,
   type ActivityId,
 } from "../engine/config";
-import type { Worker } from "../engine/state";
+import type { GameState, Worker } from "../engine/state";
 import { WORKER_LABELS, ACTIVITY_NAMES, specialtyText } from "./labels";
 
-const IMPLEMENTED: readonly ActivityId[] = ACTIVITY_IDS.filter(
+const ACTIVITY_ORDER: readonly ActivityId[] = ACTIVITY_IDS.filter(
   (activity) => ACTIVITIES[activity] !== undefined,
 );
 
 export interface WorkerCardProps {
+  state: GameState;
   worker: Worker;
   onAssign: (workerId: string, activity: ActivityId) => void;
   onActive: (workerId: string) => void;
 }
 
-export function WorkerCard({ worker, onAssign, onActive }: WorkerCardProps) {
+export function WorkerCard({ state, worker, onAssign, onActive }: WorkerCardProps) {
   const current = worker.activity;
 
   return (
@@ -32,19 +34,37 @@ export function WorkerCard({ worker, onAssign, onActive }: WorkerCardProps) {
         </span>
       </header>
 
-      <div className="activities" role="group" aria-label={`Activities for ${WORKER_LABELS[worker.kind]}`}>
-        {IMPLEMENTED.map((activity) => (
-          <button
-            key={activity}
-            type="button"
-            className="activity"
-            aria-pressed={current === activity}
-            onClick={() => onAssign(worker.id, activity)}
-          >
-            <span>{ACTIVITY_NAMES[activity]}</span>
-            <span className="activity-level">Lv {worker.skills[activity].level}</span>
-          </button>
-        ))}
+      <div
+        className="activities"
+        role="group"
+        aria-label={`Activities for ${WORKER_LABELS[worker.kind]}`}
+      >
+        {ACTIVITY_ORDER.map((activity) => {
+          const config = ACTIVITIES[activity];
+          const locked = !isActivityUnlocked(state, activity);
+          return (
+            <button
+              key={activity}
+              type="button"
+              className={locked ? "activity activity-locked" : "activity"}
+              aria-pressed={current === activity}
+              disabled={locked}
+              title={
+                locked && config
+                  ? `Opens after venture ${config.unlockVentures}`
+                  : undefined
+              }
+              onClick={() => onAssign(worker.id, activity)}
+            >
+              <span>{ACTIVITY_NAMES[activity]}</span>
+              <span className="activity-level">
+                {locked && config
+                  ? `After venture ${config.unlockVentures}`
+                  : `Lv ${worker.skills[activity].level}`}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       <button

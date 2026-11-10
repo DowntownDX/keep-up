@@ -2,6 +2,8 @@ import {
   ACTIVITIES,
   BUILD_CREDITS_PER_POINT,
   BUILD_KNOWHOW_PER_POINT,
+  CLIENT_CASH_PER_LEAD,
+  CLIENT_CREDITS_PER_LEAD,
 } from "./config";
 import { workerRate, xpToNextLevel } from "./rates";
 import type { GameState, Skill, Worker } from "./state";
@@ -21,8 +23,12 @@ export function workWorker(state: GameState, worker: Worker, seconds: number): b
     return workOnVenture(state, worker, seconds);
   }
 
+  if (activity === "clientWork") {
+    return workClientWork(state, worker, seconds);
+  }
+
   if (config.resource) {
-    state.resources[config.resource] += workerRate(worker, activity) * seconds;
+    state.resources[config.resource] += workerRate(state, worker, activity) * seconds;
   }
   earnXp(worker.skills[activity], seconds);
   return true;
@@ -34,7 +40,7 @@ export function workWorker(state: GameState, worker: Worker, seconds: number): b
  */
 function workOnVenture(state: GameState, worker: Worker, seconds: number): boolean {
   if (hasWon(state)) return false;
-  const desired = workerRate(worker, "build") * seconds;
+  const desired = workerRate(state, worker, "build") * seconds;
   if (desired <= 0) return false;
 
   const creditLimit = state.resources.credits / BUILD_CREDITS_PER_POINT;
@@ -52,6 +58,31 @@ function workOnVenture(state: GameState, worker: Worker, seconds: number): boole
   );
   state.ventureProgress += points;
   earnXp(worker.skills.build, seconds * (points / desired));
+  return true;
+}
+
+/**
+ * Client work turns Leads into Cash. Credits and Leads both cap the work, so a
+ * worker stops when either stock runs out. XP follows the fraction completed.
+ */
+function workClientWork(state: GameState, worker: Worker, seconds: number): boolean {
+  const desiredHandled = workerRate(state, worker, "clientWork") * seconds;
+  if (desiredHandled <= 0) return false;
+
+  const desiredCash = desiredHandled * CLIENT_CASH_PER_LEAD;
+  const leadLimit = state.resources.leads * CLIENT_CASH_PER_LEAD;
+  const creditLimit = (state.resources.credits / CLIENT_CREDITS_PER_LEAD) * CLIENT_CASH_PER_LEAD;
+  const cash = Math.min(desiredCash, leadLimit, creditLimit);
+  if (cash <= 0) return false;
+
+  const handled = cash / CLIENT_CASH_PER_LEAD;
+  state.resources.cash += cash;
+  state.resources.leads = Math.max(0, state.resources.leads - handled);
+  state.resources.credits = Math.max(
+    0,
+    state.resources.credits - handled * CLIENT_CREDITS_PER_LEAD,
+  );
+  earnXp(worker.skills.clientWork, seconds * (cash / desiredCash));
   return true;
 }
 

@@ -17,15 +17,33 @@ export interface ActivityConfig {
   label: string;
   /** Resource the activity produces. Null for activities with special effects. */
   resource: ResourceId | null;
+  /**
+   * Base activity units per second. For Client work the unit is a Lead handled,
+   * not Cash.
+   */
   basePerSecond: number;
+  /** Ventures that must ship before the activity can be assigned. */
+  unlockVentures: number;
 }
 
 /** Activities that exist in the engine so far. Later phases add entries. */
 export const ACTIVITIES: Partial<Record<ActivityId, ActivityConfig>> = {
-  dayJob: { label: "Day job tasks", resource: "cash", basePerSecond: 0.5 },
-  content: { label: "Make content", resource: "followers", basePerSecond: 1 },
-  learn: { label: "Learn", resource: "knowHow", basePerSecond: 0.2 },
-  build: { label: "Build venture", resource: null, basePerSecond: 1 },
+  dayJob: { label: "Day job tasks", resource: "cash", basePerSecond: 0.5, unlockVentures: 0 },
+  content: { label: "Make content", resource: "followers", basePerSecond: 1, unlockVentures: 0 },
+  learn: { label: "Learn", resource: "knowHow", basePerSecond: 0.2, unlockVentures: 0 },
+  findClients: {
+    label: "Find clients",
+    resource: "leads",
+    basePerSecond: 0.1,
+    unlockVentures: 1,
+  },
+  clientWork: {
+    label: "Client work",
+    resource: "cash",
+    basePerSecond: 0.2,
+    unlockVentures: 1,
+  },
+  build: { label: "Build venture", resource: null, basePerSecond: 1, unlockVentures: 0 },
 };
 
 export const WORKER_KINDS = [
@@ -105,6 +123,19 @@ export const BUILD_KNOWHOW_PER_POINT = 0.2;
 
 export const VENTURE_INCOME_BASE = 0.5;
 export const VENTURE_INCOME_GROWTH = 3;
+
+export const CLIENT_CREDITS_PER_LEAD = 5;
+export const CLIENT_CASH_PER_LEAD = 8;
+
+export const PROMPT_BASE_COST = 25;
+export const PROMPT_COST_GROWTH = 1.5;
+export const PROMPT_BONUS_PER_LEVEL = 0.08;
+
+export const SKILLS_BASE_COST = 10;
+export const SKILLS_COST_GROWTH = 1.6;
+export const SKILLS_BONUS_PER_LEVEL = 0.1;
+
+export const TEAM_BONUS_PER_LEVEL = 0.005;
 
 export const SYSTEMS = [
   "promptLibrary",

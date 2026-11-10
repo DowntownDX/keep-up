@@ -1,4 +1,5 @@
 import {
+  ACTIVITIES,
   ACTIVITY_IDS,
   RESOURCE_IDS,
   TICK_SECONDS,
@@ -10,7 +11,7 @@ import {
 import type { GameState, Skill, Worker } from "./state";
 import { buildPointsRequired } from "./ventures";
 
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 
 export interface LoadedSave {
   state: GameState;
@@ -37,6 +38,7 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
     state: { ...save.state, venturesShipped: 0, ventureProgress: 0 },
   }),
   2: (save) => ({ ...save, savedAt: 0 }),
+  3: (save) => ({ ...save, state: { ...save.state, promptLevel: 0, skillsLevel: 0 } }),
 };
 
 export function serializeGame(state: GameState, savedAt: number): string {
@@ -51,6 +53,8 @@ export function serializeGame(state: GameState, savedAt: number): string {
     pendingSeconds: state.pendingSeconds,
     venturesShipped: state.venturesShipped,
     ventureProgress: state.ventureProgress,
+    promptLevel: state.promptLevel,
+    skillsLevel: state.skillsLevel,
   };
   return JSON.stringify({ version: SAVE_VERSION, savedAt, state: snapshot });
 }
@@ -135,6 +139,7 @@ function isValidState(value: unknown): value is GameState {
 
   const workers = value.workers;
   if (!Array.isArray(workers) || workers.length === 0) return false;
+  const validatedWorkers: Worker[] = [];
   const workerIds = new Set<string>();
   const agentKinds = new Set<string>();
   let youCount = 0;
@@ -142,6 +147,7 @@ function isValidState(value: unknown): value is GameState {
 
   for (const worker of workers) {
     if (!isValidWorker(worker)) return false;
+    validatedWorkers.push(worker);
     if (workerIds.has(worker.id)) return false;
     workerIds.add(worker.id);
 
@@ -162,6 +168,8 @@ function isValidState(value: unknown): value is GameState {
   if (!isIntegerAtLeast(value.subscriptionTier, 1)) return false;
   if (!isIntegerAtLeast(value.nextAgentNumber, 1)) return false;
   if (value.nextAgentNumber <= maxAgentNumber) return false;
+  if (!isIntegerAtLeast(value.promptLevel, 0)) return false;
+  if (!isIntegerAtLeast(value.skillsLevel, 0)) return false;
 
   if (
     !isFiniteNumber(value.pendingSeconds) ||
@@ -178,6 +186,12 @@ function isValidState(value: unknown): value is GameState {
     if (value.ventureProgress >= buildPointsRequired(value.venturesShipped)) return false;
   } else if (value.ventureProgress !== 0) {
     return false;
+  }
+
+  for (const worker of validatedWorkers) {
+    if (!worker.activity) continue;
+    const config = ACTIVITIES[worker.activity];
+    if (!config || value.venturesShipped < config.unlockVentures) return false;
   }
 
   return true;

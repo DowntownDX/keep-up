@@ -1,11 +1,12 @@
 import { HirePanel } from "./HirePanel";
 import { ResourceBar } from "./ResourceBar";
+import { UpgradeCard } from "./UpgradeCard";
 import { useGame } from "./useGame";
 import { VentureCard } from "./VentureCard";
 import { WorkerCard } from "./WorkerCard";
 
 export function Game() {
-  const { state, saveError, assign, hire, active } = useGame();
+  const { state, saveError, assign, hire, active, buyPrompt, buySkills } = useGame();
 
   return (
     <div className="shell">
@@ -31,6 +32,7 @@ export function Game() {
             {state.workers.map((worker) => (
               <WorkerCard
                 key={worker.id}
+                state={state}
                 worker={worker}
                 onAssign={assign}
                 onActive={active}
@@ -39,8 +41,9 @@ export function Game() {
           </div>
         </section>
 
-        <aside className="side" aria-label="Venture and hiring">
+        <aside className="side" aria-label="Venture, upgrades and hiring">
           <VentureCard state={state} />
+          <UpgradeCard state={state} onBuyPrompt={buyPrompt} onBuySkills={buySkills} />
           <HirePanel state={state} onHire={hire} />
         </aside>
       </main>

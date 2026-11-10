@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { ActivityId } from "../src/engine/config";
 import {
   creditRate,
   resourceNetRates,
@@ -36,25 +37,30 @@ describe("specialtyMultiplier", () => {
 
 describe("workerRate", () => {
   it("combines base rate, specialty and skill level", () => {
+    const state = createInitialState();
     const you = createWorker("you", "you");
-    expect(workerRate(you, "content")).toBeCloseTo(1 * 1.2);
+    expect(workerRate(state, you, "content")).toBeCloseTo(1 * 1.2);
     you.skills.content.level = 3;
-    expect(workerRate(you, "content")).toBeCloseTo(1 * 1.2 * 1.24);
+    expect(workerRate(state, you, "content")).toBeCloseTo(1 * 1.2 * 1.24);
   });
 
   it("uses 1x for a non-specialist agent", () => {
+    const state = createInitialState();
     const creator = createWorker("agent-1", "creator");
-    expect(workerRate(creator, "dayJob")).toBeCloseTo(0.5);
-    expect(workerRate(creator, "content")).toBeCloseTo(1.6);
-    expect(workerRate(creator, "learn")).toBeCloseTo(0.2);
+    expect(workerRate(state, creator, "dayJob")).toBeCloseTo(0.5);
+    expect(workerRate(state, creator, "content")).toBeCloseTo(1.6);
+    expect(workerRate(state, creator, "learn")).toBeCloseTo(0.2);
   });
 
-  it("is zero for an activity that is not implemented yet", () => {
-    expect(workerRate(createWorker("agent-1", "builder"), "clientWork")).toBe(0);
+  it("is zero for an unknown activity", () => {
+    const state = createInitialState();
+    const builder = createWorker("agent-1", "builder");
+    expect(workerRate(state, builder, "bogus" as ActivityId)).toBe(0);
   });
 
   it("gives a Builder its 1.6x at Build venture", () => {
-    expect(workerRate(createWorker("agent-1", "builder"), "build")).toBeCloseTo(1.6);
+    const state = createInitialState();
+    expect(workerRate(state, createWorker("agent-1", "builder"), "build")).toBeCloseTo(1.6);
   });
 });
 

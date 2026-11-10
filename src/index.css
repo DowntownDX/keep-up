@@ -269,6 +269,18 @@ h3 {
   color: var(--panel);
 }
 
+.activity:disabled,
+.activity-locked {
+  border-style: dashed;
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.activity:disabled:hover {
+  border-color: var(--line);
+  background: transparent;
+}
+
 .activity-level {
   margin-top: 3px;
   font-family: var(--font-mono);
@@ -451,6 +463,112 @@ h3 {
 
 .hire-button:disabled {
   border-color: var(--line);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.upgrade-card {
+  padding: 18px 20px 20px;
+}
+
+.upgrade-title {
+  margin: 0 0 8px;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--line);
+}
+
+.tab {
+  min-height: 44px;
+  padding: 6px 10px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tab:hover {
+  color: var(--ink);
+}
+
+.tab[aria-selected="true"] {
+  border-bottom-color: var(--accent);
+  color: var(--ink);
+}
+
+.upgrade-panel {
+  display: grid;
+  gap: 8px;
+  padding-top: 14px;
+}
+
+.upgrade-panel[hidden] {
+  display: none;
+}
+
+.upgrade-level {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.upgrade-effect,
+.upgrade-note {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.upgrade-effect {
+  color: var(--ink);
+}
+
+.upgrade-note {
+  color: var(--muted);
+  font-size: 0.74rem;
+}
+
+.upgrade-buy {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+
+.buy-button {
+  flex: none;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 140ms ease;
+}
+
+.buy-button:hover:not(:disabled) {
+  background: var(--accent-dark);
+}
+
+.buy-button:disabled {
+  border-color: var(--line);
+  background: transparent;
   color: var(--muted);
   cursor: not-allowed;
 }

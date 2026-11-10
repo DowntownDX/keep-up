@@ -89,9 +89,25 @@ All Phase 0-3 decisions were made on 2026-11-10.
 | Browser verification uses `playwright-core` with installed Chrome at 1440px and 390px. | The in-app browser tools are unavailable; this checks layout, clicks and reload without downloading a browser. |
 | Win state is a short message; polish waits for Phase 9. | It is unreachable in a venture-2 verification run and not part of this phase's polish. |
 
+## Phase 5 — side hustle and upgrades
+
+| Decision | Why |
+| --- | --- |
+| Find clients and Client work unlock after venture 1 ships. | Matches the activity table's "Venture 1" column. |
+| Client work handles 0.2 Leads/s per base worker rate, burning 5 Credits and paying 8 Cash per Lead, capped by both stocks. | Straight from the balance table; the cap makes starvation testable. |
+| Client work base output is Leads handled, not Cash. Cash is `handled x 8` after one multiplier pass. | One field cannot express both; this keeps multipliers from applying twice. |
+| A saved worker on a locked activity is invalid. | Otherwise a hand-edited or stale save bypasses the venture-1 gate. |
+| Prompt skips Cash-producing activities (day job, Client work); Skills skips Learn. Both apply to build points. | The payment resource must not fund a boost to itself. |
+| Prompt library costs Cash: base 25, growing 1.5x per level. Each level adds 8% to non-Cash output (content, learn, find clients, build). | The operator-approved model; paid in Cash, so it must not boost Cash output. |
+| Skills cost Know-how: base 10, growing 1.6x per level. Each level adds 10% to non-Know-how output (day job, content, find clients, client work, build). | The operator-approved model; paid in Know-how, so it must not boost Learn. |
+| Prompt, Skills, specialty and per-worker skill multipliers multiply together. | Each system should feel additive in its own right without replacing the others. |
+| Team bonus is +0.5% per specialist level above 1, applied to that specialty's activity for every worker. Assistant contributes to both specialties. | Level 1 is the baseline; "for everyone" includes the specialist. |
+| Save version 4 adds `promptLevel` and `skillsLevel`; version 3 migrates with both at zero. | Save shape change; migration and tests are mandatory. |
+| Prompt library and Skills live in a tabbed upgrade card; locked activities stay visible and disabled with an unlock note. | Players can see what is coming without dead buttons that silently do nothing. |
+| Buying an upgrade returns false and changes nothing when the cost is unaffordable. | Same guard style as hiring and assigning. |
+
 ## Still open
 
-- Phase 5: find clients, client work, prompt library, skills, team bonuses.
 - Phase 6: follower gates, automations, audience funnel.
 - Phase 7: release clock, subscription tiers, Edge, tier cap.
 - Phase 8: sim bot, pacing, balance log.

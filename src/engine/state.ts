@@ -32,6 +32,10 @@ export interface GameState {
   venturesShipped: number;
   /** Build points put toward the current venture. */
   ventureProgress: number;
+  /** Levels bought in the Prompt library. */
+  promptLevel: number;
+  /** Levels bought in the Skills system. */
+  skillsLevel: number;
 }
 
 export function createWorker(id: string, kind: WorkerKind): Worker {
@@ -51,5 +55,7 @@ export function createInitialState(): GameState {
     pendingSeconds: 0,
     venturesShipped: 0,
     ventureProgress: 0,
+    promptLevel: 0,
+    skillsLevel: 0,
   };
 }

@@ -45,6 +45,9 @@ try {
   assert.equal(await followers(), "0");
 
   const you = page.getByRole("article", { name: "You" });
+  assert.equal(await you.getByRole("button", { name: /Find clients/ }).isDisabled(), true);
+  assert.equal(await you.getByRole("button", { name: /Client work/ }).isDisabled(), true);
+
   await you.getByRole("button", { name: /Make content/ }).click();
   await page.waitForTimeout(2_500);
   const followersAfterTick = Number(await followers());
@@ -74,7 +77,7 @@ try {
   const saved = await page.evaluate(() => localStorage.getItem("keep-up.save"));
   assert.ok(saved, "autosave should write to localStorage");
   const parsed = JSON.parse(saved);
-  assert.equal(parsed.version, 3);
+  assert.equal(parsed.version, 4);
   assert.equal(parsed.state.workers.length, 2);
 
   await page.reload({ waitUntil: "networkidle" });
@@ -92,13 +95,34 @@ try {
   }
   await page.getByRole("heading", { name: "Newsletter" }).waitFor();
   assert.match(await page.locator(".venture-count").innerText(), /1 shipped/);
+  assert.equal(await you.getByRole("button", { name: /Find clients/ }).isDisabled(), false);
+
+  await page.getByRole("tab", { name: "Prompt library" }).click();
+  assert.match(
+    await page.getByRole("tabpanel", { name: "Prompt library" }).innerText(),
+    /Level 0/,
+  );
+
+  await page.getByRole("tab", { name: "Skills" }).click();
+  const skillsPanel = page.getByRole("tabpanel", { name: "Skills" });
+  const knowHowBefore = Number(
+    await page.locator('[data-resource="knowHow"] .resource-value').innerText(),
+  );
+  assert.ok(knowHowBefore >= 10, `Know-how should reach 10, got ${knowHowBefore}`);
+  await skillsPanel.getByRole("button", { name: /Buy Skills level/ }).click();
+  await page.waitForTimeout(300);
+  assert.match(await skillsPanel.innerText(), /Level 1/);
+  const knowHowAfter = Number(
+    await page.locator('[data-resource="knowHow"] .resource-value').innerText(),
+  );
+  assert.ok(knowHowAfter < knowHowBefore, "buying Skills should spend Know-how");
 
   await page.screenshot({ path: path.join(artifacts, "desktop.png"), fullPage: true });
 
   const minButton = await page.evaluate(() => {
-    const heights = [...document.querySelectorAll("button")].map(
-      (button) => button.getBoundingClientRect().height,
-    );
+    const heights = [...document.querySelectorAll("button")]
+      .map((button) => button.getBoundingClientRect().height)
+      .filter((height) => height > 0);
     return heights.length ? Math.min(...heights) : 0;
   });
   assert.ok(minButton >= 44, `buttons should be at least 44px, got ${minButton}`);

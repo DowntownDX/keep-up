@@ -156,3 +156,13 @@ work on load.
 
 Only implemented activities appear. The provisional look is text and bars only;
 the final art direction remains an operator decision.
+
+## Side hustle and upgrades (Phase 5)
+
+Find clients and Client work open after venture 1 ships. Find clients makes
+Leads. Client work handles 0.2 Leads per second, paying 8 Cash and burning 5
+Credits per Lead, capped by both stocks.
+
+The Prompt library costs Cash and adds 8% per level to non-Cash output. Skills
+cost Know-how and add 10% per level to non-Know-how output. Specialist levels
+above 1 also add 0.5% to their activity for every worker.

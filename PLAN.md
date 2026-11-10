@@ -1,92 +1,66 @@
-# Phase 4 plan — playable screen
+# Phase 5 plan — side hustle and upgrades
 
-Goal: a browser-playable screen from a fresh game through venture 2, desktop and
-phone width, with autosave and offline catch-up. Engine stays pure.
+Goal: add Find clients and Client work, the Prompt library and Skills systems,
+team bonuses, and the UI to buy them. Engine stays pure.
 
-Baseline: `npm test` 69/69, `npm run build` clean at `ed0005f`.
-
-## Direction
-
-Provisional ledger look: paper `#f3ecdf`, ink `#191713`, panel `#fffaf0`, line
-`#d9cebd`, action `#c2410c`, growth `#2f6f4e`. Display serif (Palatino/Georgia),
-body sans (Segoe UI), numbers mono. Text and bars only; final art direction is
-still an operator decision.
+Baseline: `npm test` 93/93, `npm run build` clean at `4d4481e`.
 
 ## Steps
 
 - [x] 1. Confirm baseline.
-  Check: 69 tests pass, build clean, only PLAN.md modified.
-  Evidence: `npm test` 69/69, `npm run build` clean, only PLAN.md modified.
+  Check: 93 tests pass, build clean, only PLAN.md modified.
+  Evidence: `npm test` 93/93, `npm run build` clean, only PLAN.md modified.
 
-- [x] 2. Record Phase 4 decisions in `docs/decisions.md`, then build active play.
-  Add `ACTIVE_CLICK_SECONDS = 1.5`. Move per-worker work and shipping into
-  `src/engine/work.ts` with a `seconds` argument. `doItYourself(state, workerId)`
-  applies 1.5s of that worker's activity, caps build by stock, awards XP by the
-  same fraction rules, and ships once after the work. Clicks never add Credits
-  trickle, passive Cash or `pendingSeconds`.
-  Check: tests cover content, learn, day-job and build clicks; idle, unknown,
-  starved and post-win rejection; a click that ships; two builders crossing a
-  threshold in one tick still shipping after the loop; the existing suite green.
-  Evidence: `tests/active.test.ts` 9 tests; suite 78/78.
+- [x] 2. Save v4, upgrades and side hustle in one engine pass. Add
+  `promptLevel` and `skillsLevel`; bump `SAVE_VERSION` to 4 with a v3 migration
+  and a literal v3 fixture. Put every cost and bonus in `config.ts`. Add
+  `findClients` (0.1 Leads/s) and `clientWork` (0.2 Leads handled/s, 8 Cash and
+  5 Credits per Lead) with `unlockVentures: 1`.
+  `workerRate(state, worker, activity)` returns activity base units after
+  specialty, worker skill, prompt, skills and team multipliers; Client work
+  reports Leads handled, not Cash. Client work cash is `handled x 8`, capped by
+  both stocks, with XP by the fraction worked. `assignActivity` and save
+  validation reject locked activities. `resourceRates` converts Client work to
+  Cash; `resourceNetRates` subtracts Leads and Credits demand and never returns
+  early on win.
+  Check: tests cover v3 migration and v4 validation, prompt/skills costs and
+  purchases, multiplier stacking, team bonus per activity, unlock gates, Find
+  clients, Client work full speed and both starvations, no negative stock, and
+  net rates; `npm test` green.
+  Evidence: tests 111/111; save tests 17, side-hustle tests 8, upgrades 8.
 
-- [x] 3. Save v3, storage and the game loop. Add `savedAt` to the save envelope
-  and bump `SAVE_VERSION` to 3; v1 and v2 fixtures migrate, with v2 gaining
-  `savedAt: 0` (no offline). `loadGame` returns `{ state, savedAt }`. Add
-  `src/ui/storage.ts` with a single key, pure `restoreGame(raw, now)` using
-  `stepOffline`, `loadStoredGame` and `saveStoredGame`. Add `useGame` with one
-  1s clock using real elapsed time, immediate save after restore, 5s autosave,
-  pagehide/visibility saves, cloned state for every action and tick, and a save
-  status.
-  Check: save tests cover the v2 migration, v3 round-trip and savedAt
-  validation; storage tests cover 1h/9h/future/corrupt/absent saves, reload and
-  a throwing `setItem`; `npm test` green.
-  Evidence: save tests 15, storage tests 10, suite 91/91.
+- [x] 3. Upgrade UI. Add a keyboard-reachable Prompt library / Skills tab card
+  with level, effect, next cost and buy button. Render Find clients and Client
+  work disabled with an unlock note until venture 1. Thread buy actions through
+  `useGame`. Keep the ledger direction and net rates.
+  Check: `npm run build` clean; tabs expose tab/tabpanel semantics; buying
+  deducts the right resource and the shown rate changes.
+  Evidence: build clean; fixed a `[hidden]` override so one panel shows;
+  `verify:ui` bought a Skills level and checked the cost drop.
 
-- [x] 4. Screen and browser harness. Build the resource bar, crew cards with
-  the four activity buttons plus Do it yourself, venture card, hire panel,
-  autosave status and minimal win message. Add responsive CSS with 44px
-  targets, focus-visible rings, labels, reduced-motion handling and no
-  horizontal scroll. Add `playwright-core` and `npm run verify:ui` using
-  installed Chrome, screenshots at 1440px and 390px, and checks for assign,
-  hire, active play, autosave/reload and overflow.
-  Check: `npm run build` clean; `npm run verify:ui` passes and writes both
-  screenshots.
-  Evidence: build clean; `verify:ui` passed and wrote both screenshots; the
-  net-rate addition took the suite to 93/93.
-
-- [x] 5. Browser play and fixes. Review the screenshots against the direction
-  note, fix layout or contrast problems in one batch, then rerun. Verify a
-  fresh save, a reload that keeps progress, and the venture 2 card after
-  venture 1 ships.
-  Check: both widths show no banned defaults, no console errors, no horizontal
-  scroll; reload preserves progress.
-  Evidence: fixed the mobile resource strip and net-rate display; `verify:ui`
-  reached `Newsletter` with `1 shipped`, 0 overflow at both widths, 44px minimum
-  controls, no console errors; reload kept the hired Creator.
-
-- [x] 6. Document, full checks and commit.
+- [x] 4. Browser verification, docs and commit. Extend `verify:ui` for locked
+  activities and a Skills purchase, update the save version assertion, re-run
+  screenshots at both widths, document, run all checks and commit.
   Check: `npm test`, `npm run build`, `npm run sim` and `npm run verify:ui`
-  pass; decisions and spec updated for active play, v3 saves, autosave and the
-  provisional art direction; commit author DowntownDX with co-author trailer.
-  Evidence: `npm test` 93/93, `npm run build` clean, `npm run sim` stub runs,
-  `npm run verify:ui` reached venture 2 with 0 overflow; docs updated.
+  pass; decisions and spec updated; commit author DowntownDX with co-author
+  trailer.
+  Evidence: 111/111 tests, build clean, sim stub runs, `verify:ui` passed with
+  locked buttons and a Skills purchase; docs updated.
 
 ## Resolved assumptions
 
-- Active play shares `workWorker(seconds)` with ticks, but shipping is separate.
-- Click XP uses the current level for the whole 1.5s and levels at the end; it
-  is not 1.5 fixed ticks.
-- Save timestamps live in the versioned envelope; version 2 saves get
-  `savedAt: 0` and therefore no offline.
-- React state is always cloned before mutation; the engine mutates in place.
-- The game loop owns the clock; nothing else calls `step`.
-- Full fresh-to-venture-2 browser play is long at these balance numbers. The
-  browser check ships venture 1 and reaches venture 2 with accelerated active
-  play; shipping venture 2 stays covered by engine tests until the Phase 8 sim.
+- Client work's base unit is a Lead handled. Cash is never treated as the base
+  rate, so one multiplier pass produces `handled x 8`.
+- Prompt skips Cash-producing activities (day job, Client work); Skills skips
+  Learn. Both apply to build points.
+- Prompt, Skills, specialty, worker skill and team multipliers multiply.
+- Team bonus keys by activity, so an Assistant's day-job level cannot boost
+  Client work; levels above 1 only; the specialist is included.
+- A save with a worker on a locked activity is invalid.
+- Buying has no level cap; Phase 8 tunes pacing.
 
 ## Out of scope
 
-- Side hustle activities, prompt library, skills, team bonuses (Phase 5).
 - Automations, audience funnel, follower gates (Phase 6).
-- Release clock, subscription upgrades, Edge (Phase 7).
+- Release clock, subscriptions, Edge (Phase 7).
 - Welcome-back summary, reset, guide, deploy (Phase 9).

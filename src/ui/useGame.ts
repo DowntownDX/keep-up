@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { addAgent, assignActivity, doItYourself } from "../engine/actions";
+import { addAgent, assignActivity, buyPrompt, buySkills, doItYourself } from "../engine/actions";
 import type { ActivityId, AgentKind } from "../engine/config";
 import { createInitialState, type GameState } from "../engine/state";
 import { stepOffline } from "../engine/step";
@@ -22,6 +22,8 @@ export interface GameController {
   assign: (workerId: string, activity: ActivityId | null) => void;
   hire: (kind: AgentKind) => void;
   active: (workerId: string) => void;
+  buyPrompt: () => void;
+  buySkills: () => void;
 }
 
 export function useGame(): GameController {
@@ -104,5 +106,21 @@ export function useGame(): GameController {
     [mutate],
   );
 
-  return { state, saveError, assign, hire, active };
+  const buyPromptLevel = useCallback(() => {
+    mutate((draft) => buyPrompt(draft));
+  }, [mutate]);
+
+  const buySkillsLevel = useCallback(() => {
+    mutate((draft) => buySkills(draft));
+  }, [mutate]);
+
+  return {
+    state,
+    saveError,
+    assign,
+    hire,
+    active,
+    buyPrompt: buyPromptLevel,
+    buySkills: buySkillsLevel,
+  };
 }
