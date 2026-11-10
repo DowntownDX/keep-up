@@ -3,7 +3,9 @@ import type { GameState } from "../engine/state";
 import {
   buildPointsRequired,
   currentVentureIndex,
+  followersRequired,
   hasWon,
+  isVentureGated,
   passiveCashRate,
   ventureIncome,
 } from "../engine/ventures";
@@ -27,6 +29,8 @@ export function VentureCard({ state }: { state: GameState }) {
   const required = buildPointsRequired(index);
   const progress = Math.min(state.ventureProgress, required);
   const fraction = required > 0 ? progress / required : 0;
+  const gated = isVentureGated(state);
+  const followersNeeded = followersRequired(index);
 
   return (
     <section className="card venture" aria-labelledby="venture-title">
@@ -39,6 +43,13 @@ export function VentureCard({ state }: { state: GameState }) {
         </div>
         <span className="venture-count">{state.venturesShipped} shipped</span>
       </div>
+
+      {gated ? (
+        <p className="gate">
+          Needs {formatAmount(followersNeeded)} Followers to launch. You have{" "}
+          {formatAmount(state.resources.followers)}.
+        </p>
+      ) : null}
 
       <div
         className="progress"

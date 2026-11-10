@@ -192,6 +192,7 @@ h3 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(268px, 1fr));
   gap: 14px;
+  align-items: start;
   margin-top: 12px;
 }
 
@@ -311,6 +312,56 @@ h3 {
   background: transparent;
   color: var(--muted);
   cursor: not-allowed;
+}
+
+.automation {
+  display: grid;
+  gap: 6px;
+  margin-top: 2px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.automation-button {
+  min-height: 44px;
+  padding: 7px 10px;
+  border: 1px solid var(--ink);
+  border-radius: 4px;
+  background: transparent;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
+}
+
+.automation-button:hover:not(:disabled) {
+  background: var(--ink);
+  color: var(--panel);
+}
+
+.automation-button:disabled {
+  border-color: var(--line);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.automation-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.gate {
+  margin: 12px 0 0;
+  padding: 8px 10px;
+  border: 1px solid var(--danger);
+  border-radius: 4px;
+  color: var(--danger);
+  font-size: 0.8rem;
+  line-height: 1.35;
 }
 
 .venture {

@@ -106,9 +106,23 @@ All Phase 0-3 decisions were made on 2026-11-10.
 | Prompt library and Skills live in a tabbed upgrade card; locked activities stay visible and disabled with an unlock note. | Players can see what is coming without dead buttons that silently do nothing. |
 | Buying an upgrade returns false and changes nothing when the cost is unaffordable. | Same guard style as hiring and assigning. |
 
+## Phase 6 — automations, audience and gates
+
+| Decision | Why |
+| --- | --- |
+| Automations unlock after venture 2; one per agent kind, stored on that worker, not You. Re-recording replaces it. | Structural one-per-agent; no separate lookup table. |
+| The snapshot is 50% of the worker's output at record time, including current multipliers, then fixed forever. | "Snapshot" means later upgrades must not silently raise it. |
+| Automations hold no worker slot and earn no XP. | The worker is free to move; the automation is not a second worker. |
+| Build and Client work automations still burn their resources, stock-capped. | Otherwise an automation would print free progress or Cash. |
+| Ticks run Credits, passive Cash, audience funnel Leads, workers, automations, then shipping. | Fresh Leads can fund Client work in the same tick; one ship point per tick. |
+| Audience funnel unlocks after venture 3: 1 Lead/s per 2,000 Followers, not consuming Followers. | Straight from the balance table; Followers are never spent. |
+| Follower gates start at venture 6 with 5,000, growing 6x per venture. Build progress, burn, automation output and shipping are blocked until the count is met. | "Cannot launch" means the venture cannot start; blocking only the ship would let points bank for free. |
+| Overflow that lands on a gated venture is discarded. | Banking it would effectively launch the venture without the Follower count. |
+| Save version 5 adds `worker.automation`; version 4 migrates every worker to null. | Save shape change; migration and validation are mandatory. |
+| Agent cards get a Record/Update automation control once the system unlocks; the venture card and Build buttons show the Follower gate. | Players need to see why building is blocked. |
+
 ## Still open
 
-- Phase 6: follower gates, automations, audience funnel.
 - Phase 7: release clock, subscription tiers, Edge, tier cap.
 - Phase 8: sim bot, pacing, balance log.
 - Phase 9: polish, reset, guide, deploy.

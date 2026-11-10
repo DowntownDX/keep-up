@@ -1,66 +1,59 @@
-# Phase 5 plan — side hustle and upgrades
+# Phase 6 plan — automations, audience and gates
 
-Goal: add Find clients and Client work, the Prompt library and Skills systems,
-team bonuses, and the UI to buy them. Engine stays pure.
+Goal: automations, the audience funnel and Follower gates on ventures 6-10.
+Engine stays pure.
 
-Baseline: `npm test` 93/93, `npm run build` clean at `4d4481e`.
+Baseline: `npm test` 111/111, `npm run build` clean at `6b0e2f0`.
 
 ## Steps
 
 - [x] 1. Confirm baseline.
-  Check: 93 tests pass, build clean, only PLAN.md modified.
-  Evidence: `npm test` 93/93, `npm run build` clean, only PLAN.md modified.
+  Check: 111 tests pass, build clean, only PLAN.md modified.
+  Evidence: `npm test` 111/111, `npm run build` clean, only PLAN.md modified.
 
-- [x] 2. Save v4, upgrades and side hustle in one engine pass. Add
-  `promptLevel` and `skillsLevel`; bump `SAVE_VERSION` to 4 with a v3 migration
-  and a literal v3 fixture. Put every cost and bonus in `config.ts`. Add
-  `findClients` (0.1 Leads/s) and `clientWork` (0.2 Leads handled/s, 8 Cash and
-  5 Credits per Lead) with `unlockVentures: 1`.
-  `workerRate(state, worker, activity)` returns activity base units after
-  specialty, worker skill, prompt, skills and team multipliers; Client work
-  reports Leads handled, not Cash. Client work cash is `handled x 8`, capped by
-  both stocks, with XP by the fraction worked. `assignActivity` and save
-  validation reject locked activities. `resourceRates` converts Client work to
-  Cash; `resourceNetRates` subtracts Leads and Credits demand and never returns
-  early on win.
-  Check: tests cover v3 migration and v4 validation, prompt/skills costs and
-  purchases, multiplier stacking, team bonus per activity, unlock gates, Find
-  clients, Client work full speed and both starvations, no negative stock, and
-  net rates; `npm test` green.
-  Evidence: tests 111/111; save tests 17, side-hustle tests 8, upgrades 8.
+- [x] 2. Engine pass. Put 50%, 1 Lead/2,000 Followers, 5,000 and x6 in
+  `config.ts`. Add `automation: { activity, rate } | null` to `Worker`, not a
+  separate state list. Bump `SAVE_VERSION` to 5; v4 adds `automation: null` to
+  every worker. `recordAutomation` snapshots 50% of the agent's current output,
+  fixed, no XP, one per agent, You rejected.
+  Tick order: Credits, passive Cash, audience funnel Leads, workers,
+  automations, then shipping. Build and Client work automations reuse the
+  stock-capped burn. A gated venture blocks build progress, burn, automation
+  build output and shipping; overflow that lands on a gate is discarded.
+  Audience funnel is `followers / 2000` after venture 3. Gates start at venture
+  6 with 5,000, x6.
+  Check: tests cover recording, fixed snapshots after reassignment and later
+  upgrades, no automation XP, build/client burn, funnel unlock/order, gate block
+  and release, gate-overflow discard, v4 migration and v5 validation;
+  `npm test` green.
+  Evidence: automation tests 12, save tests 21, suite 127/127.
 
-- [x] 3. Upgrade UI. Add a keyboard-reachable Prompt library / Skills tab card
-  with level, effect, next cost and buy button. Render Find clients and Client
-  work disabled with an unlock note until venture 1. Thread buy actions through
-  `useGame`. Keep the ledger direction and net rates.
-  Check: `npm run build` clean; tabs expose tab/tabpanel semantics; buying
-  deducts the right resource and the shown rate changes.
-  Evidence: build clean; fixed a `[hidden]` override so one panel shows;
-  `verify:ui` bought a Skills level and checked the cost drop.
-
-- [x] 4. Browser verification, docs and commit. Extend `verify:ui` for locked
-  activities and a Skills purchase, update the save version assertion, re-run
-  screenshots at both widths, document, run all checks and commit.
-  Check: `npm test`, `npm run build`, `npm run sim` and `npm run verify:ui`
-  pass; decisions and spec updated; commit author DowntownDX with co-author
-  trailer.
-  Evidence: 111/111 tests, build clean, sim stub runs, `verify:ui` passed with
-  locked buttons and a Skills purchase; docs updated.
+- [x] 3. UI, browser check, docs and commit. Show recorded automation and a
+  Record/Update button on agent cards after venture 2; show the Follower
+  requirement in the venture card and disable Build activity buttons while
+  gated. Extend `verify:ui` to record an automation and keep the venture-2 run.
+  Re-run screenshots, document, run all checks and commit.
+  Check: `npm test`, `npm run build` and `npm run verify:ui` pass; decisions and
+  spec updated; commit author DowntownDX with co-author trailer.
+  Evidence: 127/127 tests, build clean, `verify:ui` recorded an automation,
+  checked the gated venture 6 state, and kept 0 overflow at both widths; docs
+  updated.
 
 ## Resolved assumptions
 
-- Client work's base unit is a Lead handled. Cash is never treated as the base
-  rate, so one multiplier pass produces `handled x 8`.
-- Prompt skips Cash-producing activities (day job, Client work); Skills skips
-  Learn. Both apply to build points.
-- Prompt, Skills, specialty, worker skill and team multipliers multiply.
-- Team bonus keys by activity, so an Assistant's day-job level cannot boost
-  Client work; levels above 1 only; the specialist is included.
-- A save with a worker on a locked activity is invalid.
-- Buying has no level cap; Phase 8 tunes pacing.
+- Storing the snapshot on the worker makes one-per-agent structural and removes
+  a duplicate lookup table.
+- The snapshot is the current full rate x 0.5, frozen; later Prompt, Skills or
+  team changes do not raise it.
+- Automations run after workers, so a worker can change activity and the
+  automation still runs; shipping sees both contributions.
+- The audience funnel lands before workers, so fresh Leads can be spent by
+  Client work in the same tick.
+- A gate check runs before every venture in the ship loop. Overflow that would
+  start a gated venture is discarded, not banked.
+- You cannot record an automation; agent cards only.
 
 ## Out of scope
 
-- Automations, audience funnel, follower gates (Phase 6).
 - Release clock, subscriptions, Edge (Phase 7).
 - Welcome-back summary, reset, guide, deploy (Phase 9).

@@ -2,6 +2,7 @@ import {
   ACTIVITIES,
   ACTIVITY_IDS,
   RESOURCE_IDS,
+  SYSTEM_UNLOCK_VENTURES,
   TICK_SECONDS,
   VENTURE_COUNT,
   WORKER_KINDS,
@@ -9,9 +10,9 @@ import {
   type WorkerKind,
 } from "./config";
 import type { GameState, Skill, Worker } from "./state";
-import { buildPointsRequired } from "./ventures";
+import { buildPointsRequired, followersRequired } from "./ventures";
 
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 
 export interface LoadedSave {
   state: GameState;
@@ -39,6 +40,17 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
   }),
   2: (save) => ({ ...save, savedAt: 0 }),
   3: (save) => ({ ...save, state: { ...save.state, promptLevel: 0, skillsLevel: 0 } }),
+  4: (save) => ({
+    ...save,
+    state: {
+      ...save.state,
+      workers: Array.isArray(save.state.workers)
+        ? save.state.workers.map((worker) =>
+            isRecord(worker) ? { ...worker, automation: null } : worker,
+          )
+        : save.state.workers,
+    },
+  }),
 };
 
 export function serializeGame(state: GameState, savedAt: number): string {
@@ -124,7 +136,21 @@ function isValidWorker(value: unknown): value is Worker {
 
   const skills = value.skills;
   if (!isRecord(skills)) return false;
-  return ACTIVITY_IDS.every((activity) => isValidSkill(skills[activity]));
+  if (!ACTIVITY_IDS.every((activity) => isValidSkill(skills[activity]))) return false;
+
+  if (value.automation !== null) {
+    if (!isRecord(value.automation)) return false;
+    if (
+      typeof value.automation.activity !== "string" ||
+      !ACTIVITY_IDS.includes(value.automation.activity as ActivityId)
+    ) {
+      return false;
+    }
+    if (!isFiniteNumber(value.automation.rate) || value.automation.rate < 0) return false;
+    if (value.kind === "you") return false;
+  }
+
+  return true;
 }
 
 function isValidState(value: unknown): value is GameState {
@@ -192,6 +218,21 @@ function isValidState(value: unknown): value is GameState {
     if (!worker.activity) continue;
     const config = ACTIVITIES[worker.activity];
     if (!config || value.venturesShipped < config.unlockVentures) return false;
+  }
+
+  for (const worker of validatedWorkers) {
+    if (!worker.automation) continue;
+    if (value.venturesShipped < SYSTEM_UNLOCK_VENTURES.automations) return false;
+    const config = ACTIVITIES[worker.automation.activity];
+    if (!config || value.venturesShipped < config.unlockVentures) return false;
+  }
+
+  if (value.venturesShipped < VENTURE_COUNT) {
+    const followers = resources.followers;
+    if (typeof followers !== "number") return false;
+    if (followers < followersRequired(value.venturesShipped) && value.ventureProgress !== 0) {
+      return false;
+    }
   }
 
   return true;

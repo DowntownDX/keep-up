@@ -6,7 +6,7 @@ import { VentureCard } from "./VentureCard";
 import { WorkerCard } from "./WorkerCard";
 
 export function Game() {
-  const { state, saveError, assign, hire, active, buyPrompt, buySkills } = useGame();
+  const { state, saveError, assign, hire, active, automate, buyPrompt, buySkills } = useGame();
 
   return (
     <div className="shell">
@@ -36,6 +36,7 @@ export function Game() {
                 worker={worker}
                 onAssign={assign}
                 onActive={active}
+                onAutomate={automate}
               />
             ))}
           </div>

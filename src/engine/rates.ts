@@ -25,7 +25,7 @@ import {
   type WorkerKind,
 } from "./config";
 import type { GameState, Worker } from "./state";
-import { hasWon, passiveCashRate } from "./ventures";
+import { audienceFunnelRate, hasWon, isVentureGated, passiveCashRate } from "./ventures";
 
 export function skillMultiplier(level: number): number {
   return 1 + SKILL_BONUS_PER_LEVEL * (level - 1);
@@ -107,6 +107,7 @@ export function resourceRates(state: GameState): Record<ResourceId, number> {
   >;
   rates.credits = creditRate(state);
   rates.cash = passiveCashRate(state);
+  rates.leads = audienceFunnelRate(state);
   for (const worker of state.workers) {
     const activity = worker.activity;
     if (!activity) continue;
@@ -120,6 +121,19 @@ export function resourceRates(state: GameState): Record<ResourceId, number> {
       rates[config.resource] += workerRate(state, worker, activity);
     }
   }
+  for (const worker of state.workers) {
+    const automation = worker.automation;
+    if (!automation) continue;
+    const config = ACTIVITIES[automation.activity];
+    if (!config) continue;
+    if (automation.activity === "clientWork") {
+      rates.cash += automation.rate * CLIENT_CASH_PER_LEAD;
+      continue;
+    }
+    if (config.resource) {
+      rates[config.resource] += automation.rate;
+    }
+  }
   return rates;
 }
 
@@ -130,12 +144,11 @@ export function resourceRates(state: GameState): Record<ResourceId, number> {
 export function resourceNetRates(state: GameState): Record<ResourceId, number> {
   const rates = resourceRates(state);
   const won = hasWon(state);
+  const gated = isVentureGated(state);
 
   for (const worker of state.workers) {
     const activity = worker.activity;
-    if (!activity) continue;
-
-    if (activity === "build" && !won) {
+    if (activity === "build" && !won && !gated) {
       const points = workerRate(state, worker, activity);
       rates.credits -= points * BUILD_CREDITS_PER_POINT;
       rates.knowHow -= points * BUILD_KNOWHOW_PER_POINT;
@@ -145,6 +158,17 @@ export function resourceNetRates(state: GameState): Record<ResourceId, number> {
       const handled = workerRate(state, worker, activity);
       rates.leads -= handled;
       rates.credits -= handled * CLIENT_CREDITS_PER_LEAD;
+    }
+
+    const automation = worker.automation;
+    if (!automation) continue;
+    if (automation.activity === "build" && !won && !gated) {
+      rates.credits -= automation.rate * BUILD_CREDITS_PER_POINT;
+      rates.knowHow -= automation.rate * BUILD_KNOWHOW_PER_POINT;
+    }
+    if (automation.activity === "clientWork") {
+      rates.leads -= automation.rate;
+      rates.credits -= automation.rate * CLIENT_CREDITS_PER_LEAD;
     }
   }
   return rates;

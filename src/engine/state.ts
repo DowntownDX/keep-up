@@ -13,12 +13,19 @@ export interface Skill {
   xp: number;
 }
 
+/** A frozen share of a worker's output, recorded once. */
+export interface Automation {
+  activity: ActivityId;
+  rate: number;
+}
+
 export interface Worker {
   id: string;
   kind: WorkerKind;
   activity: ActivityId | null;
   /** One skill per activity, kept when the worker switches activities. */
   skills: Record<ActivityId, Skill>;
+  automation: Automation | null;
 }
 
 export interface GameState {
@@ -43,7 +50,7 @@ export function createWorker(id: string, kind: WorkerKind): Worker {
   for (const activity of ACTIVITY_IDS) {
     skills[activity] = { level: 1, xp: 0 };
   }
-  return { id, kind, activity: null, skills };
+  return { id, kind, activity: null, skills, automation: null };
 }
 
 export function createInitialState(): GameState {

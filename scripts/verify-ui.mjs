@@ -77,7 +77,7 @@ try {
   const saved = await page.evaluate(() => localStorage.getItem("keep-up.save"));
   assert.ok(saved, "autosave should write to localStorage");
   const parsed = JSON.parse(saved);
-  assert.equal(parsed.version, 4);
+  assert.equal(parsed.version, 5);
   assert.equal(parsed.state.workers.length, 2);
 
   await page.reload({ waitUntil: "networkidle" });
@@ -96,6 +96,32 @@ try {
   await page.getByRole("heading", { name: "Newsletter" }).waitFor();
   assert.match(await page.locator(".venture-count").innerText(), /1 shipped/);
   assert.equal(await you.getByRole("button", { name: /Find clients/ }).isDisabled(), false);
+
+  await page.waitForTimeout(5_500);
+  const seededSave = await page.evaluate(() => {
+    const raw = localStorage.getItem("keep-up.save");
+    if (!raw) throw new Error("no save to seed");
+    const data = JSON.parse(raw);
+    data.savedAt = Date.now();
+    data.state.venturesShipped = 2;
+    data.state.ventureProgress = 0;
+    return JSON.stringify(data);
+  });
+  await page.addInitScript((save) => localStorage.setItem("keep-up.save", save), seededSave);
+  await page.reload({ waitUntil: "networkidle" });
+  await page.getByRole("heading", { name: "Template shop" }).waitFor();
+
+  const followersBeforeAutomation = Number(await followers());
+  await creator.getByRole("button", { name: /Record automation/ }).click();
+  await page.waitForTimeout(300);
+  assert.match(await creator.innerText(), /Automates Make content/);
+  await creator.getByRole("button", { name: /Day job tasks/ }).click();
+  await page.waitForTimeout(2_200);
+  const followersAfterAutomation = Number(await followers());
+  assert.ok(
+    followersAfterAutomation > followersBeforeAutomation,
+    "the recorded automation should keep making Followers after the worker moves",
+  );
 
   await page.getByRole("tab", { name: "Prompt library" }).click();
   assert.match(
@@ -151,6 +177,36 @@ try {
   );
   assert.ok(mobileOverflow <= 1, `mobile horizontal overflow: ${mobileOverflow}`);
   await mobilePage.screenshot({ path: path.join(artifacts, "mobile.png"), fullPage: true });
+
+  const gateData = JSON.parse(seededSave);
+  gateData.savedAt = Date.now();
+  gateData.state.venturesShipped = 5;
+  gateData.state.ventureProgress = 0;
+  gateData.state.resources.followers = 0;
+  const gateContext = await browser.newContext({ viewport: { width: 1000, height: 900 } });
+  await gateContext.addInitScript(
+    (save) => localStorage.setItem("keep-up.save", save),
+    JSON.stringify(gateData),
+  );
+  const gatePage = await gateContext.newPage();
+  await gatePage.goto(url, { waitUntil: "networkidle" });
+  await gatePage.getByRole("heading", { name: "Browser extension" }).waitFor();
+  assert.match(await gatePage.locator(".gate").innerText(), /5K Followers/);
+  assert.equal(
+    await gatePage
+      .getByRole("article", { name: "You" })
+      .getByRole("button", { name: /Build venture/ })
+      .isDisabled(),
+    true,
+  );
+  assert.equal(
+    await gatePage
+      .getByRole("article", { name: "You" })
+      .getByRole("button", { name: /Do it yourself/ })
+      .isDisabled(),
+    true,
+  );
+  await gateContext.close();
 
   assert.deepEqual(errors, [], `browser errors: ${errors.join("; ")}`);
 

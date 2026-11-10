@@ -1,7 +1,8 @@
 import { OFFLINE_CAP_SECONDS, TICK_SECONDS } from "./config";
+import { applyAutomation } from "./automations";
 import { creditRate } from "./rates";
 import type { GameState } from "./state";
-import { passiveCashRate } from "./ventures";
+import { audienceFunnelRate, passiveCashRate } from "./ventures";
 import { shipCompletedVentures, workWorker } from "./work";
 
 const TICK_EPSILON = 1e-9;
@@ -36,8 +37,12 @@ export function stepOffline(state: GameState, elapsedSeconds: number): GameState
 function tick(state: GameState): void {
   state.resources.credits += creditRate(state) * TICK_SECONDS;
   state.resources.cash += passiveCashRate(state) * TICK_SECONDS;
+  state.resources.leads += audienceFunnelRate(state) * TICK_SECONDS;
   for (const worker of state.workers) {
     workWorker(state, worker, TICK_SECONDS);
+  }
+  for (const worker of state.workers) {
+    applyAutomation(state, worker, TICK_SECONDS);
   }
   shipCompletedVentures(state);
 }

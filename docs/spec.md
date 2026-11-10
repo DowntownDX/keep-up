@@ -166,3 +166,13 @@ Credits per Lead, capped by both stocks.
 The Prompt library costs Cash and adds 8% per level to non-Cash output. Skills
 cost Know-how and add 10% per level to non-Know-how output. Specialist levels
 above 1 also add 0.5% to their activity for every worker.
+
+## Automations, audience and gates (Phase 6)
+
+Automations unlock after venture 2. Each agent can hold one frozen snapshot at
+50% of its output when recorded. It runs without the worker and earns no XP;
+build and Client work snapshots still burn their stock. The audience funnel
+unlocks after venture 3 and makes 1 Lead per second per 2,000 Followers.
+
+Ventures 6 to 10 require Followers to launch: 5,000 at venture 6, growing 6x per
+venture. Building, burn and shipping wait until the count is met.

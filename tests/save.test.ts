@@ -43,6 +43,16 @@ const V3_SAVE = JSON.stringify({
   state: (JSON.parse(V2_SAVE) as { state: Record<string, unknown> }).state,
 });
 
+const V4_SAVE = JSON.stringify({
+  version: 4,
+  savedAt: 1_700_000_000_000,
+  state: {
+    ...(JSON.parse(V3_SAVE) as { state: Record<string, unknown> }).state,
+    promptLevel: 1,
+    skillsLevel: 2,
+  },
+});
+
 function payload(version: number, state: unknown, savedAt?: unknown): string {
   const envelope: Record<string, unknown> = { version, state };
   if (savedAt !== undefined) envelope.savedAt = savedAt;
@@ -63,12 +73,13 @@ function richState(): GameState {
   state.ventureProgress = 12.5;
   state.promptLevel = 3;
   state.skillsLevel = 2;
+  state.workers[1].automation = { activity: "content", rate: 0.8 };
   return state;
 }
 
 describe("save format", () => {
   it("writes the current version, timestamp and state", () => {
-    expect(SAVE_VERSION).toBe(4);
+    expect(SAVE_VERSION).toBe(5);
     const parsed = JSON.parse(serializeGame(createInitialState(), 1_700_000_000_000)) as {
       version: number;
       savedAt: number;
@@ -78,6 +89,7 @@ describe("save format", () => {
     expect(parsed.savedAt).toBe(1_700_000_000_000);
     expect(parsed.state.venturesShipped).toBe(0);
     expect(parsed.state.promptLevel).toBe(0);
+    expect(parsed.state.workers[0].automation).toBeNull();
     expect(parsed.state.resources.cash).toBe(15);
   });
 
@@ -128,6 +140,16 @@ describe("migration", () => {
     expect(loaded.state.venturesShipped).toBe(1);
     expect(loaded.state.promptLevel).toBe(0);
     expect(loaded.state.skillsLevel).toBe(0);
+    expect(loaded.state.workers[0].automation).toBeNull();
+  });
+
+  it("loads a version 4 save and adds null automations", () => {
+    const loaded = loadGame(V4_SAVE);
+    if (loaded === null) throw new Error("version 4 save should load");
+
+    expect(loaded.state.promptLevel).toBe(1);
+    expect(loaded.state.skillsLevel).toBe(2);
+    expect(loaded.state.workers[0].automation).toBeNull();
   });
 
   it("rejects versions with no migration path or a newer format", () => {
@@ -150,7 +172,7 @@ describe("invalid saves", () => {
   it("rejects a missing or non-numeric version", () => {
     const state = createInitialState();
     expect(loadGame(JSON.stringify({ state }))).toBeNull();
-    expect(loadGame(JSON.stringify({ version: "4", state, savedAt: 1 }))).toBeNull();
+    expect(loadGame(JSON.stringify({ version: "5", state, savedAt: 1 }))).toBeNull();
   });
 
   it("rejects a missing, negative or non-numeric timestamp", () => {
@@ -229,6 +251,38 @@ describe("invalid saves", () => {
     expect(loadGame(payload(SAVE_VERSION, state, 1_000))).toBeNull();
 
     state.ventureProgress = 299;
+    expect(loadGame(payload(SAVE_VERSION, state, 1_000))).not.toBeNull();
+  });
+
+  it("rejects a You automation and a negative snapshot rate", () => {
+    const you = structuredClone(createInitialState());
+    you.workers[0].automation = { activity: "content", rate: 0.6 };
+    expect(loadGame(payload(SAVE_VERSION, you, 1_000))).toBeNull();
+
+    const agent = structuredClone(createInitialState());
+    agent.workers.push(createWorker("agent-1", "creator"));
+    agent.nextAgentNumber = 2;
+    agent.venturesShipped = 2;
+    agent.workers[1].automation = { activity: "content", rate: -1 };
+    expect(loadGame(payload(SAVE_VERSION, agent, 1_000))).toBeNull();
+  });
+
+  it("rejects an automation before venture 2 unlocked the system", () => {
+    const state = structuredClone(createInitialState());
+    state.venturesShipped = 1;
+    state.workers.push(createWorker("agent-1", "creator"));
+    state.nextAgentNumber = 2;
+    state.workers[1].automation = { activity: "content", rate: 0.8 };
+    expect(loadGame(payload(SAVE_VERSION, state, 1_000))).toBeNull();
+  });
+
+  it("rejects progress banked behind a Follower gate", () => {
+    const state = structuredClone(createInitialState());
+    state.venturesShipped = 5;
+    state.ventureProgress = 1;
+    expect(loadGame(payload(SAVE_VERSION, state, 1_000))).toBeNull();
+
+    state.ventureProgress = 0;
     expect(loadGame(payload(SAVE_VERSION, state, 1_000))).not.toBeNull();
   });
 });

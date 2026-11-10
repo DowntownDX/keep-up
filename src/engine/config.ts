@@ -137,6 +137,12 @@ export const SKILLS_BONUS_PER_LEVEL = 0.1;
 
 export const TEAM_BONUS_PER_LEVEL = 0.005;
 
+export const AUTOMATION_FRACTION = 0.5;
+export const FUNNEL_FOLLOWERS_PER_LEAD = 2_000;
+export const FOLLOWER_GATE_START_INDEX = 5;
+export const FOLLOWER_GATE_BASE = 5_000;
+export const FOLLOWER_GATE_GROWTH = 6;
+
 export const SYSTEMS = [
   "promptLibrary",
   "skills",
