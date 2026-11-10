@@ -28,8 +28,19 @@ const V1_SAVE = JSON.stringify({
   },
 });
 
-function payload(version: number, state: unknown): string {
-  return JSON.stringify({ version, state });
+const V2_SAVE = JSON.stringify({
+  version: 2,
+  state: {
+    ...(JSON.parse(V1_SAVE) as { state: Record<string, unknown> }).state,
+    venturesShipped: 1,
+    ventureProgress: 12.5,
+  },
+});
+
+function payload(version: number, state: unknown, savedAt?: unknown): string {
+  const envelope: Record<string, unknown> = { version, state };
+  if (savedAt !== undefined) envelope.savedAt = savedAt;
+  return JSON.stringify(envelope);
 }
 
 function richState(): GameState {
@@ -48,40 +59,58 @@ function richState(): GameState {
 }
 
 describe("save format", () => {
-  it("writes the current version and state", () => {
-    expect(SAVE_VERSION).toBe(2);
-    const parsed = JSON.parse(serializeGame(createInitialState())) as {
+  it("writes the current version, timestamp and state", () => {
+    expect(SAVE_VERSION).toBe(3);
+    const parsed = JSON.parse(serializeGame(createInitialState(), 1_700_000_000_000)) as {
       version: number;
+      savedAt: number;
       state: GameState;
     };
     expect(parsed.version).toBe(SAVE_VERSION);
+    expect(parsed.savedAt).toBe(1_700_000_000_000);
     expect(parsed.state.venturesShipped).toBe(0);
     expect(parsed.state.resources.cash).toBe(15);
   });
 
   it("reloads a rich state identically", () => {
     const state = richState();
-    expect(loadGame(serializeGame(state))).toEqual(state);
+    const loaded = loadGame(serializeGame(state, 1_700_000_000_000));
+    expect(loaded).toEqual({ state, savedAt: 1_700_000_000_000 });
+  });
+
+  it("rejects a bad timestamp when saving", () => {
+    expect(() => serializeGame(createInitialState(), -1)).toThrow(RangeError);
+    expect(() => serializeGame(createInitialState(), Number.NaN)).toThrow(RangeError);
   });
 });
 
 describe("migration", () => {
-  it("loads a version 1 save and adds the venture fields", () => {
+  it("loads a version 1 save through both migrations", () => {
     const loaded = loadGame(V1_SAVE);
     if (loaded === null) throw new Error("version 1 save should load");
 
-    expect(loaded.venturesShipped).toBe(0);
-    expect(loaded.ventureProgress).toBe(0);
-    expect(loaded.resources.cash).toBe(42.5);
-    expect(loaded.workers[0].skills.content).toEqual({ level: 2, xp: 5 });
-    expect(loaded.workers[0].activity).toBe("content");
-    expect(loaded.pendingSeconds).toBe(0.25);
+    expect(loaded.savedAt).toBe(0);
+    expect(loaded.state.venturesShipped).toBe(0);
+    expect(loaded.state.ventureProgress).toBe(0);
+    expect(loaded.state.resources.cash).toBe(42.5);
+    expect(loaded.state.workers[0].skills.content).toEqual({ level: 2, xp: 5 });
+    expect(loaded.state.workers[0].activity).toBe("content");
+    expect(loaded.state.pendingSeconds).toBe(0.25);
+  });
+
+  it("loads a version 2 save and adds a zero timestamp", () => {
+    const loaded = loadGame(V2_SAVE);
+    if (loaded === null) throw new Error("version 2 save should load");
+
+    expect(loaded.savedAt).toBe(0);
+    expect(loaded.state.venturesShipped).toBe(1);
+    expect(loaded.state.ventureProgress).toBe(12.5);
   });
 
   it("rejects versions with no migration path or a newer format", () => {
     const state = createInitialState();
     expect(loadGame(payload(0, state))).toBeNull();
-    expect(loadGame(payload(99, state))).toBeNull();
+    expect(loadGame(payload(99, state, 1_000))).toBeNull();
   });
 });
 
@@ -98,18 +127,25 @@ describe("invalid saves", () => {
   it("rejects a missing or non-numeric version", () => {
     const state = createInitialState();
     expect(loadGame(JSON.stringify({ state }))).toBeNull();
-    expect(loadGame(JSON.stringify({ version: "2", state }))).toBeNull();
+    expect(loadGame(JSON.stringify({ version: "3", state, savedAt: 1 }))).toBeNull();
+  });
+
+  it("rejects a missing, negative or non-numeric timestamp", () => {
+    const state = createInitialState();
+    expect(loadGame(payload(SAVE_VERSION, state))).toBeNull();
+    expect(loadGame(payload(SAVE_VERSION, state, -1))).toBeNull();
+    expect(loadGame(payload(SAVE_VERSION, state, "now"))).toBeNull();
   });
 
   it("rejects negative or non-numeric resources", () => {
     const negative = structuredClone(createInitialState());
     negative.resources.cash = -1;
-    expect(loadGame(payload(SAVE_VERSION, negative))).toBeNull();
+    expect(loadGame(payload(SAVE_VERSION, negative, 1_000))).toBeNull();
 
     const missing = structuredClone(createInitialState()) as unknown as Record<string, unknown>;
     const resources = missing.resources as Record<string, unknown>;
     resources.cash = null;
-    expect(loadGame(payload(SAVE_VERSION, missing))).toBeNull();
+    expect(loadGame(payload(SAVE_VERSION, missing, 1_000))).toBeNull();
   });
 
   it("rejects a worker missing one of the six skills", () => {
@@ -118,43 +154,43 @@ describe("invalid saves", () => {
       Record<ActivityId, { level: number; xp: number }>
     >;
     delete skills.content;
-    expect(loadGame(payload(SAVE_VERSION, state))).toBeNull();
+    expect(loadGame(payload(SAVE_VERSION, state, 1_000))).toBeNull();
   });
 
   it("rejects an unknown activity but accepts a not-yet-implemented one", () => {
     const bogus = structuredClone(createInitialState());
     bogus.workers[0].activity = "bogus" as ActivityId;
-    expect(loadGame(payload(SAVE_VERSION, bogus))).toBeNull();
+    expect(loadGame(payload(SAVE_VERSION, bogus, 1_000))).toBeNull();
 
     const future = structuredClone(createInitialState());
     future.workers[0].activity = "findClients";
-    const loaded = loadGame(payload(SAVE_VERSION, future));
-    expect(loaded?.workers[0].activity).toBe("findClients");
+    const loaded = loadGame(payload(SAVE_VERSION, future, 1_000));
+    expect(loaded?.state.workers[0].activity).toBe("findClients");
   });
 
   it("rejects a pending remainder that would run for more than one tick", () => {
     const state = structuredClone(createInitialState());
     state.pendingSeconds = 1_000_000_000;
-    expect(loadGame(payload(SAVE_VERSION, state))).toBeNull();
+    expect(loadGame(payload(SAVE_VERSION, state, 1_000))).toBeNull();
 
     state.pendingSeconds = 1;
-    expect(loadGame(payload(SAVE_VERSION, state))).toBeNull();
+    expect(loadGame(payload(SAVE_VERSION, state, 1_000))).toBeNull();
   });
 
   it("rejects a stale next agent number", () => {
     const state = structuredClone(createInitialState());
     state.workers.push(createWorker("agent-1", "creator"));
     state.nextAgentNumber = 1;
-    expect(loadGame(payload(SAVE_VERSION, state))).toBeNull();
+    expect(loadGame(payload(SAVE_VERSION, state, 1_000))).toBeNull();
   });
 
   it("rejects venture progress at or above the current requirement", () => {
     const state = structuredClone(createInitialState());
     state.venturesShipped = 1;
     state.ventureProgress = 300;
-    expect(loadGame(payload(SAVE_VERSION, state))).toBeNull();
+    expect(loadGame(payload(SAVE_VERSION, state, 1_000))).toBeNull();
 
     state.ventureProgress = 299;
-    expect(loadGame(payload(SAVE_VERSION, state))).not.toBeNull();
+    expect(loadGame(payload(SAVE_VERSION, state, 1_000))).not.toBeNull();
   });
 });

@@ -1,5 +1,6 @@
 import {
   ACTIVITIES,
+  ACTIVE_CLICK_SECONDS,
   AGENT_KINDS,
   AGENT_SEAT_COSTS,
   MAX_AGENTS,
@@ -7,6 +8,7 @@ import {
   type AgentKind,
 } from "./config";
 import { createWorker, type GameState } from "./state";
+import { shipCompletedVentures, workWorker } from "./work";
 
 /** Put a worker on an activity, or take it off with null. */
 export function assignActivity(
@@ -38,4 +40,16 @@ export function addAgent(state: GameState, kind: AgentKind): boolean {
   state.workers.push(createWorker(`agent-${state.nextAgentNumber}`, kind));
   state.nextAgentNumber += 1;
   return true;
+}
+
+/**
+ * Apply one click of active play to a worker. This is worker work only: no
+ * Credits trickle, passive Cash or tick remainder is added.
+ */
+export function doItYourself(state: GameState, workerId: string): boolean {
+  const worker = state.workers.find((candidate) => candidate.id === workerId);
+  if (!worker) return false;
+  const worked = workWorker(state, worker, ACTIVE_CLICK_SECONDS);
+  if (worked) shipCompletedVentures(state);
+  return worked;
 }

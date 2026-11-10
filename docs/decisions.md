@@ -72,6 +72,23 @@ All Phase 0-3 decisions were made on 2026-11-10.
 | Balance tuning is deferred to Phase 8; `balance-log.md` stays empty until then. | Current numbers are the spec's untested first draft. |
 | `npm run sim` stays a stub until Phase 8. | The bot and pacing run are Phase 8 work. |
 
+## Phase 4 — playable screen
+
+| Decision | Why |
+| --- | --- |
+| Provisional ledger art direction: warm paper, ink, one burnt-orange action color, display serif with body sans, text and bars only. | Phase 4 needs a screen; the final art direction remains an operator decision and this direction needs no assets. |
+| Do it yourself is a button on each worker card. | The spec says one worker's activity; putting it on the worker makes the target unambiguous. |
+| Active play applies 1.5s through the same work function as a tick, without Credits trickle, passive Cash or `pendingSeconds`. | One formula avoids drift; a click is worker work, not global time. |
+| A click ships completed ventures once, after the work, never inside a per-worker loop. | Keeps the Phase 2 ship-after-loop rule and prevents later builders feeding the next venture. |
+| Save envelope moves to version 3 with a `savedAt` timestamp; version 2 migrates with `savedAt: 0`, meaning no offline. | One self-contained save format; no localStorage wrapper or phantom legacy format. |
+| Offline is applied silently on load; the welcome-back summary waits for Phase 9. | Keeps Phase 4 focused; the engine already has the cap and catch-up. |
+| Autosave every 5s, plus pagehide and visibility change; a failed write is shown, not hidden. | A debounce alone can starve during continuous ticks; a fixed interval guarantees writes. |
+| One clock owner: a 1s interval using real elapsed time, capped at 8h. | Avoids interval drift and double-stepping from extra timers. |
+| Only the four implemented activities are rendered. | No dead buttons for find clients or client work. |
+| The resource bar shows net rates, subtracting the build burn workers are trying to spend. | A gross rate would show +1/s Credits while the stock falls; the sim keeps using gross `resourceRates`. |
+| Browser verification uses `playwright-core` with installed Chrome at 1440px and 390px. | The in-app browser tools are unavailable; this checks layout, clicks and reload without downloading a browser. |
+| Win state is a short message; polish waits for Phase 9. | It is unreachable in a venture-2 verification run and not part of this phase's polish. |
+
 ## Still open
 
 - Phase 5: find clients, client work, prompt library, skills, team bonuses.

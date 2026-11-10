@@ -6,6 +6,7 @@ Browser idle game. Read docs/spec.md and docs/decisions.md before changing game 
 - npm run dev      local preview
 - npm test         run all unit tests
 - npm run sim      headless playthrough, prints venture ship times
+- npm run verify:ui browser check in installed Chrome at 1440px and 390px
 - npm run build    production build
 
 ## Rules

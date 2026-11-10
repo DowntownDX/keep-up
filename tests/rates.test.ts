@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   creditRate,
+  resourceNetRates,
   resourceRates,
   skillMultiplier,
   specialtyMultiplier,
@@ -99,5 +100,24 @@ describe("resourceRates", () => {
     const state = createInitialState();
     state.venturesShipped = 2;
     expect(resourceRates(state).cash).toBeCloseTo(2, 9);
+  });
+});
+
+describe("resourceNetRates", () => {
+  it("subtracts the build burn workers are trying to spend", () => {
+    const state = createInitialState();
+    state.workers[0].activity = "build";
+    const rates = resourceNetRates(state);
+    expect(rates.credits).toBeCloseTo(1 - 1.2, 9);
+    expect(rates.knowHow).toBeCloseTo(-0.24, 9);
+  });
+
+  it("does not subtract burn after the game is won", () => {
+    const state = createInitialState();
+    state.workers[0].activity = "build";
+    state.venturesShipped = 10;
+    const rates = resourceNetRates(state);
+    expect(rates.credits).toBeCloseTo(1, 9);
+    expect(rates.knowHow).toBe(0);
   });
 });

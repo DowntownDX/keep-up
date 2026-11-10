@@ -81,6 +81,9 @@ export const STARTING_SUBSCRIPTION_TIER = 1;
 /** The engine advances in whole ticks of this length; step() carries the remainder. */
 export const TICK_SECONDS = 1;
 
+/** Work applied by one Do it yourself click. */
+export const ACTIVE_CLICK_SECONDS = 1.5;
+
 export const VENTURE_NAMES = [
   "Prompt pack",
   "Newsletter",

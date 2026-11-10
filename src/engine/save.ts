@@ -10,20 +10,39 @@ import {
 import type { GameState, Skill, Worker } from "./state";
 import { buildPointsRequired } from "./ventures";
 
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
+
+export interface LoadedSave {
+  state: GameState;
+  /** Wall-clock time the save was written. Zero means no offline catch-up. */
+  savedAt: number;
+}
 
 type RawState = Record<string, unknown>;
 
+interface RawSave {
+  version: number;
+  state: RawState;
+  savedAt?: unknown;
+}
+
 /**
- * Version 1 is the Phase 1 state shape, before ventures. Loading it adds the
- * venture fields at their starting values. Future migrations go here, keyed by
- * the version being upgraded from.
+ * Version 1 is the Phase 1 state shape, before ventures. Version 2 adds the
+ * venture fields. Version 3 adds the envelope timestamp. Migrations run in
+ * order and are keyed by the version being upgraded from.
  */
-const MIGRATIONS: Record<number, (state: RawState) => RawState> = {
-  1: (state) => ({ ...state, venturesShipped: 0, ventureProgress: 0 }),
+const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
+  1: (save) => ({
+    ...save,
+    state: { ...save.state, venturesShipped: 0, ventureProgress: 0 },
+  }),
+  2: (save) => ({ ...save, savedAt: 0 }),
 };
 
-export function serializeGame(state: GameState): string {
+export function serializeGame(state: GameState, savedAt: number): string {
+  if (!Number.isFinite(savedAt) || savedAt < 0) {
+    throw new RangeError("savedAt must be a finite timestamp of zero or more");
+  }
   const snapshot: GameState = {
     resources: state.resources,
     workers: state.workers,
@@ -33,10 +52,10 @@ export function serializeGame(state: GameState): string {
     venturesShipped: state.venturesShipped,
     ventureProgress: state.ventureProgress,
   };
-  return JSON.stringify({ version: SAVE_VERSION, state: snapshot });
+  return JSON.stringify({ version: SAVE_VERSION, savedAt, state: snapshot });
 }
 
-export function loadGame(raw: string): GameState | null {
+export function loadGame(raw: string): LoadedSave | null {
   let parsed: unknown;
   try {
     parsed = JSON.parse(raw);
@@ -45,22 +64,27 @@ export function loadGame(raw: string): GameState | null {
   }
   if (!isRecord(parsed)) return null;
 
-  const { version, state } = parsed;
+  const { version, state, savedAt } = parsed;
   if (typeof version !== "number" || !Number.isInteger(version) || !isRecord(state)) {
     return null;
   }
 
-  let migrated: unknown = state;
+  let save: RawSave = { version, state, savedAt };
   let currentVersion = version;
   while (currentVersion < SAVE_VERSION) {
     const migrate = MIGRATIONS[currentVersion];
     if (!migrate) return null;
-    migrated = migrate(migrated as RawState);
+    save = migrate(save);
     currentVersion += 1;
   }
   if (currentVersion !== SAVE_VERSION) return null;
 
-  return isValidState(migrated) ? migrated : null;
+  const loadedState = save.state;
+  if (!isValidState(loadedState)) return null;
+  const loadedSavedAt = save.savedAt;
+  if (!isFiniteNumber(loadedSavedAt) || loadedSavedAt < 0) return null;
+
+  return { state: loadedState, savedAt: loadedSavedAt };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

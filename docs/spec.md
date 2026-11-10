@@ -145,3 +145,14 @@ release pace or upgrade costs in `config.ts`.
 Rules the design leaves open are recorded in
 [docs/decisions.md](decisions.md): starting state, tick model, venture shipping,
 save policy and offline behaviour. Read it before changing engine behaviour.
+
+## Playable screen (Phase 4)
+
+The version 1 screen is a ledger-style control board: a resource strip, one card
+per worker with activity buttons and Do it yourself, the current venture with
+its build bar and passive income, and a hire panel. It autosaves to localStorage
+every five seconds and on page hide, and applies up to eight hours of offline
+work on load.
+
+Only implemented activities appear. The provisional look is text and bars only;
+the final art direction remains an operator decision.
