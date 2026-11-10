@@ -4,8 +4,7 @@ import {
   MAX_SUBSCRIPTION_TIER,
   MODEL_COUNT,
   RELEASE_INTERVAL_GROWTH,
-  SUBSCRIPTION_UPGRADE_BASE_COST,
-  SUBSCRIPTION_UPGRADE_COST_GROWTH,
+  SUBSCRIPTION_UPGRADE_COSTS,
 } from "./config";
 import type { GameState } from "./state";
 
@@ -74,7 +73,7 @@ export function cashGain(
 /** Cash needed for the next tier, or null at the cap. */
 export function subscriptionUpgradeCost(tier: number): number | null {
   if (tier >= MAX_SUBSCRIPTION_TIER) return null;
-  return SUBSCRIPTION_UPGRADE_BASE_COST * SUBSCRIPTION_UPGRADE_COST_GROWTH ** (tier - 1);
+  return SUBSCRIPTION_UPGRADE_COSTS[tier - 1] ?? null;
 }
 
 /** Whether the next tier exists, has been released and is affordable. */

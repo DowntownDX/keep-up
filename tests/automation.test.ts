@@ -22,7 +22,8 @@ describe("recording", () => {
 
     expect(recordAutomation(state, "agent-1")).toBe(true);
 
-    expect(state.workers[1].automation).toEqual({ activity: "content", rate: 0.8 });
+    expect(state.workers[1].automation?.activity).toBe("content");
+    expect(state.workers[1].automation?.rate).toBeCloseTo(0.08, 9);
   });
 
   it("rejects You, an idle agent, an unknown id and a locked system", () => {
@@ -60,9 +61,9 @@ describe("running", () => {
 
     step(state, 10);
 
-    expect(state.resources.followers).toBeCloseTo(8, 9);
+    expect(state.resources.followers).toBeCloseTo(0.8, 9);
     expect(state.workers[1].skills.content.xp).toBeCloseTo(2, 9);
-    expect(resourceRates(state).followers).toBeCloseTo(0.8, 9);
+    expect(resourceRates(state).followers).toBeCloseTo(0.08, 9);
   });
 
   it("stays fixed when later upgrades would raise the live rate", () => {
@@ -75,7 +76,7 @@ describe("running", () => {
 
     step(state, 10);
 
-    expect(state.resources.followers).toBeCloseTo(8, 9);
+    expect(state.resources.followers).toBeCloseTo(0.8, 9);
   });
 
   it("burns stock for a build automation", () => {
@@ -88,7 +89,7 @@ describe("running", () => {
 
     expect(state.ventureProgress).toBeCloseTo(8, 9);
     expect(state.resources.credits).toBeCloseTo(1_002, 9);
-    expect(state.resources.knowHow).toBeCloseTo(998.4, 9);
+    expect(state.resources.knowHow).toBeCloseTo(999.6, 9);
     expect(state.workers[1].skills.build.xp).toBe(0);
   });
 
@@ -122,10 +123,10 @@ describe("Follower gates", () => {
     expect(state.resources.knowHow).toBe(5);
   });
 
-  it("releases the gate at 5,000 Followers", () => {
+  it("releases the gate at the venture-6 Follower count", () => {
     const state = createInitialState();
     state.venturesShipped = 5;
-    state.resources.followers = 5_000;
+    state.resources.followers = 1_150_000;
     assignActivity(state, "you", "build");
 
     step(state, 10);
@@ -136,7 +137,7 @@ describe("Follower gates", () => {
   it("discards overflow that lands on a gated venture", () => {
     const state = createInitialState();
     state.venturesShipped = 4;
-    state.ventureProgress = 37_499;
+    state.ventureProgress = 46_829;
     assignActivity(state, "you", "build");
 
     step(state, 1);

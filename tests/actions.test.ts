@@ -25,13 +25,13 @@ describe("assignActivity", () => {
 });
 
 describe("addAgent", () => {
-  it("charges the first seat 40 Cash and the next 400", () => {
+  it("charges the first seat 40 Cash and the next 800", () => {
     const state = createInitialState();
     state.resources.cash = 1_000;
     expect(nextAgentCost(state)).toBe(40);
     expect(addAgent(state, "creator")).toBe(true);
     expect(state.resources.cash).toBe(960);
-    expect(nextAgentCost(state)).toBe(400);
+    expect(nextAgentCost(state)).toBe(800);
   });
 
   it("refuses a hire it cannot afford and leaves Cash alone", () => {
@@ -58,7 +58,7 @@ describe("addAgent", () => {
 
   it("stops at five agents and reports no next seat", () => {
     const state = createInitialState();
-    state.resources.cash = 1_000_000;
+    state.resources.cash = 2_000_000;
     const kinds: AgentKind[] = ["assistant", "creator", "scout", "tutor", "builder"];
     for (const kind of kinds) {
       expect(addAgent(state, kind)).toBe(true);

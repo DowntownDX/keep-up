@@ -113,7 +113,7 @@ describe("Cash earning", () => {
 
     step(state, 10);
 
-    expect(state.resources.followers).toBeCloseTo(12, 9);
+    expect(state.resources.followers).toBeCloseTo(1.2, 9);
     expect(state.resources.credits).toBeCloseTo(30, 9);
   });
 

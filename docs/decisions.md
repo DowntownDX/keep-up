@@ -138,9 +138,29 @@ All Phase 0-3 decisions were made on 2026-11-10.
 | The timeline and news feed name generations, not labs. | Lab names remain an open operator decision. |
 | The release card sits after the venture card in the side column. | The arms race is the second global system and belongs next to venture progress. |
 
+## Phase 8 — sim bot, pacing and balance
+
+| Decision | Why |
+| --- | --- |
+| The bot plays idle: no Do it yourself clicks, continuous game time for thirty days, decisions every five seconds. | The targets describe a player who checks in a few times a day; clicks would measure active play instead. |
+| Hiring order is Tutor, Creator, Builder, Assistant, Scout. The Tutor learns, the Creator makes content, the Builder builds or learns, the Assistant takes Cash work, and the Scout finds clients. | Covers every burn before building: Know-how first, then build speed, then Cash and Leads. |
+| The bot upgrades the subscription when a release is out and Cash allows, buys the cheaper affordable upgrade only above a reserve, and records automations once plus when the live rate is 1.5x the snapshot. | Simple rules that neither starve a build nor freeze forever at an old snapshot. |
+| A fall-behind episode starts when Edge drops below 1.5 and ends when it returns to 1.5. | Gives the "fall behind at least twice and catch up" target a countable definition. |
+| "First Follower gate" is the first tick where the current gated venture has enough Followers to launch. | Measures the gate doing its job, not just the venture count. |
+| The Edge-pinning check stops before generation 10, which arrives on day 17. | After the last release, staying at 1.5 is the correct end state, not a balance failure. |
+| Every pacing target range lives in `src/sim/targets.ts` and is shared by the CLI and tests. | One source of truth; the check cannot drift from the test. |
+| `npm run sim` prints milestones and PASS/FAIL per target, accepts `--days` and `--json`, and exits nonzero on a miss. | Makes the phase a deterministic check instead of a demo. |
+| Balance changes live in `config.ts`; pinned test numbers follow the tune and are never weakened. | The rules stay fixed while the numbers move; tests keep proving the same relationships. |
+| `docs/balance-log.md` gets one entry per tuning round: what changed, the run that justified it, and the result. | Keeps every number traceable to a measurement. |
+| Build points are a tuned ten-value table: 260, 1,000, 4,700, 14,190, 46,830, 154,540, 510,000, 1,683,000, 5,555,000 and 18,330,000. | A flat 5x growth made venture 10 unreachable; a steeper early slope and a flatter tail hit the early targets and the 2-3 week finish. |
+| Build burn is 1 Credit and 0.05 Know-how per point. | At 0.2 Know-how per point the last venture needed more Know-how than the Learn activity could make in weeks. |
+| Make content makes 0.1 Followers per second at base. | At 1 per second the 5,000 Follower gate was always cleared before venture 6; the slower rate makes Followers a deliberate investment. |
+| Follower gates are 1,150,000 at venture 6, growing 1.8x per venture. | Puts the first gate on day 2 and keeps later gates inside the content curve instead of outrunning it. |
+| Seat costs are 40, 800, 12,000, 120,000 and 1,200,000 Cash. | The old second and third seats arrived so early that the Builder erased the middle-game targets. |
+| Subscription upgrades follow the table 25, 500, 15,000, 300,000, 6M, 60M, 300M, 1B and 3B Cash. | Early upgrades must be a real choice so the player can fall behind; late prices must stay reachable with passive income. These rows supersede the first-draft build, seat, gate and subscription numbers in Phases 2, 6 and 7. |
+
 ## Still open
 
-- Phase 8: sim bot, pacing, balance log.
 - Phase 9: polish, reset, guide, deploy.
 - Operator decisions from the build plan: name, fictional labs, quitting the day
   job, art direction, static host, offline cap as an upgrade.

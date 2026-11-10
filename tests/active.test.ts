@@ -15,7 +15,7 @@ describe("doItYourself", () => {
 
     expect(doItYourself(state, "you")).toBe(true);
 
-    expect(state.resources.followers).toBeCloseTo(1.8, 9);
+    expect(state.resources.followers).toBeCloseTo(0.18, 9);
     expect(state.workers[0].skills.content.xp).toBeCloseTo(1.5, 9);
     expect(state.workers[0].skills.content.level).toBe(1);
     expect(state.resources.credits).toBe(20);
@@ -39,7 +39,7 @@ describe("doItYourself", () => {
 
     expect(state.ventureProgress).toBeCloseTo(1.8, 9);
     expect(state.resources.credits).toBeCloseTo(18.2, 9);
-    expect(state.resources.knowHow).toBeCloseTo(4.64, 9);
+    expect(state.resources.knowHow).toBeCloseTo(4.91, 9);
     expect(state.workers[0].skills.build.xp).toBeCloseTo(1.5, 9);
   });
 
@@ -70,7 +70,7 @@ describe("doItYourself", () => {
 
     doItYourself(state, "you");
 
-    expect(state.resources.followers).toBeCloseTo(1.8, 9);
+    expect(state.resources.followers).toBeCloseTo(0.18, 9);
     expect(state.workers[0].skills.content.level).toBe(2);
     expect(state.workers[0].skills.content.xp).toBeCloseTo(1, 9);
   });
@@ -79,7 +79,7 @@ describe("doItYourself", () => {
     const state = gameWithYouOn("build");
     state.resources.credits = 1_000;
     state.resources.knowHow = 1_000;
-    state.ventureProgress = 59;
+    state.ventureProgress = 259;
 
     expect(doItYourself(state, "you")).toBe(true);
 
@@ -108,7 +108,7 @@ describe("shipping after a tick", () => {
     if (!assignActivity(state, "agent-1", "build")) throw new Error("could not assign builder");
     state.resources.credits = 1_000;
     state.resources.knowHow = 1_000;
-    state.ventureProgress = 59;
+    state.ventureProgress = 259;
 
     step(state, 1);
 

@@ -1,6 +1,5 @@
 import {
-  BUILD_POINTS_BASE,
-  BUILD_POINTS_GROWTH,
+  BUILD_POINTS_BY_VENTURE,
   FOLLOWER_GATE_BASE,
   FOLLOWER_GATE_GROWTH,
   FOLLOWER_GATE_START_INDEX,
@@ -16,7 +15,10 @@ import type { GameState } from "./state";
 
 /** Build points needed to ship the venture at this zero-based index. */
 export function buildPointsRequired(ventureIndex: number): number {
-  return BUILD_POINTS_BASE * BUILD_POINTS_GROWTH ** ventureIndex;
+  return (
+    BUILD_POINTS_BY_VENTURE[ventureIndex] ??
+    BUILD_POINTS_BY_VENTURE[BUILD_POINTS_BY_VENTURE.length - 1]
+  );
 }
 
 /** Passive Cash per second paid by the venture at this zero-based index. */
@@ -56,6 +58,16 @@ export function followersRequired(ventureIndex: number): number {
 export function isVentureGated(state: GameState): boolean {
   const index = currentVentureIndex(state);
   return index !== null && state.resources.followers < followersRequired(index);
+}
+
+/** Whether the current gated venture has enough Followers to launch. */
+export function isFollowerGateMet(state: GameState): boolean {
+  const index = currentVentureIndex(state);
+  return (
+    index !== null &&
+    index >= FOLLOWER_GATE_START_INDEX &&
+    state.resources.followers >= followersRequired(index)
+  );
 }
 
 /** Leads per second from the audience funnel, once venture 3 unlocks it. */

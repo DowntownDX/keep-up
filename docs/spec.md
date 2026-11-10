@@ -83,27 +83,28 @@ too, so standing still means falling behind.
 
 ## Starting balance numbers
 
-These numbers are an untested first draft. Treat them as a starting point for
-the balance phase, not as final values. They live in `src/engine/config.ts`.
+These numbers are the Phase 8 tuned values. They live in
+`src/engine/config.ts`; the rounds that produced them are in
+`docs/balance-log.md`.
 
 | Item | Starting value |
 | --- | --- |
-| Base output per second | Cash 0.5 from day job, Followers 1, Know-how 0.2, Leads 0.1, build points 1 |
+| Base output per second | Cash 0.5 from day job, Followers 0.1, Know-how 0.2, Leads 0.1, build points 1 |
 | Client work | Handles 0.2 Leads per second; each Lead burns 5 Credits and pays 8 Cash |
 | Credits trickle | 1 per second on the free tier, growing 1.5x per subscription tier |
 | Audience funnel | 1 Lead per second for every 2,000 Followers |
 | Skill level effect | +12% output per level above 1 |
 | XP needed for next level | 15 seconds of work, growing 1.25x per level |
 | Starting stock | 20 Credits, 5 Know-how, 15 Cash |
-| Agent seat costs (Cash) | 40, 400, 4,000, 40,000, 400,000 |
-| Build points per venture | 60 for venture 1, growing 5x per venture |
-| Build burn | 1 Credit and 0.2 Know-how per build point |
+| Agent seat costs (Cash) | 40, 800, 12,000, 120,000, 1,200,000 |
+| Build points per venture | 260 for venture 1, then the tuned curve in `config.ts` |
+| Build burn | 1 Credit and 0.05 Know-how per build point |
 | Venture passive income | 0.5 Cash per second for venture 1, growing 3x per venture |
-| Followers needed to launch | 5,000 for venture 6, growing 6x per venture |
+| Followers needed to launch | 1,150,000 for venture 6, growing 1.8x per venture |
 | Prompt library effect and cost growth | +8% to +10% per level; cost grows 1.5x per level |
 | Skill cost growth | 1.6x per level |
 | Release clock | Second model generation at 150 seconds; each later one takes about 3x longer |
-| Subscription upgrade cost (Cash) | 50 for tier 2, growing 6x per tier |
+| Subscription upgrade cost (Cash) | 25 for tier 2, then the tuned table in `config.ts` up to 3B |
 | Edge multiplier on Cash | 1.5x, 1.25x, 1.1x, 1x, 0.9x by generations behind |
 
 ## Lesson from the earlier prototype
@@ -174,19 +175,33 @@ Automations unlock after venture 2. Each agent can hold one frozen snapshot at
 build and Client work snapshots still burn their stock. The audience funnel
 unlocks after venture 3 and makes 1 Lead per second per 2,000 Followers.
 
-Ventures 6 to 10 require Followers to launch: 5,000 at venture 6, growing 6x per
-venture. Building, burn and shipping wait until the count is met.
+Ventures 6 to 10 require Followers to launch: 1,150,000 at venture 6, growing
+1.8x per venture. Building, burn and shipping wait until the count is met.
 
 ## Release clock, subscriptions and Edge (Phase 7)
 
 The labs release ten model generations on game time. Generation 1 is current at
 the start, generation 2 arrives after 150 seconds, and each later one takes
 three times as long as the interval before it. A release does nothing for you
-until you pay Cash to upgrade: tier 2 costs 50 Cash, growing 6x per tier, and
-tier 10 is the cap.
+until you pay Cash to upgrade: tier 2 costs 25 Cash, then the tuned table in
+`config.ts` up to 3B, and tier 10 is the cap.
 
 Edge is how close your subscription is to the latest release. It multiplies all
 Cash you earn: 1.5x on the latest generation, 1.25x one behind, 1.1x two behind,
 1x three behind and 0.9x four or more behind. It never changes what you spend
 or the other resources. The screen shows the generation timeline, the next
 release countdown, the current Edge and a release news feed.
+
+## Balance pass (Phase 8)
+
+A headless bot plays a fresh game for thirty simulated days with simple rules:
+hire in order, keep Learn ahead of build burn, staff Cash, Followers and Leads,
+upgrade the subscription when a release is out and Cash allows, and record
+automations. `npm run sim` prints every venture ship time, the Edge at each
+ship and PASS/FAIL per pacing target; it exits nonzero when a target is missed.
+
+The first-draft numbers above were replaced by the tuned values in the table
+and in `config.ts`: a steeper early build curve with a flatter tail, 0.05
+Know-how per build point, 0.1 Followers per second, seats up to 1.2M Cash, a
+1.15M first Follower gate growing 1.8x, and a subscription cost table ending at
+3B Cash. The tuning rounds are recorded in `docs/balance-log.md`.

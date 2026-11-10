@@ -1,110 +1,106 @@
-# Phase 7 plan — release clock, subscriptions and Edge
+# Phase 8 plan — sim bot, pacing and balance
 
-Goal: model generations arrive on a game-time clock, Cash upgrades the
-subscription up to the latest release, Edge multiplies all Cash earned, and the
-screen shows the release timeline and a release news feed. Engine stays pure.
+Goal: a headless bot plays a fresh game for thirty simulated days, prints every
+milestone and Edge, and `npm run sim` fails when the pacing targets are missed.
+Tune `config.ts` until the run passes; log every change in `balance-log.md`.
 
-Baseline: `npm test` 127/127, `npm run build` clean at `755a6a3`.
+Baseline: `npm test` 150/150, `npm run build` clean at `69e116f`.
 
 ## Steps
 
 - [x] 1. Confirm baseline.
-  Check: 127 tests pass, build clean, working tree clean.
-  Evidence: `npm test` 127/127, `npm run build` clean, `git status --short`
-  empty at `755a6a3`.
+  Check: 150 tests pass and build clean at `69e116f`; only `PLAN.md` differs.
+  Evidence: `npm test` 150/150, `npm run build` clean, `git status --short`
+  shows only `PLAN.md` at `69e116f`.
 
-- [x] 2. Record the Phase 7 contract in `docs/decisions.md`.
-  Check: one Phase 7 section lists clock, Edge, tier cap, migration, feed and
-  the 1.5x shift to existing Cash expectations; no code touched.
-  Evidence: Phase 7 section added; `Still open` now starts at Phase 8.
+- [x] 2. Record the Phase 8 contract in `docs/decisions.md`: bot policy,
+  milestone definitions, target ranges, the no-clicks assumption, and the rule
+  that behaviour changes live in `config.ts` while pinned test numbers follow
+  the tune and are never weakened.
+  Check: one Phase 8 section lists policy, milestones, targets and logging; no
+  code touched.
+  Evidence: Phase 8 section added; `Still open` now lists Phase 9 only.
 
-- [x] 3. Engine pass, part one: add `elapsedSeconds` to `GameState` and
-  `createInitialState`, add the release numbers to `config.ts` and a new pure
-  `src/engine/releases.ts` (`releaseTime`, `latestGeneration`, `nextRelease`,
-  `generationsBehind`, `edgeMultiplier`, `cashGain`,
-  `subscriptionUpgradeCost`, `canUpgradeSubscription`). Generation 1 at zero,
-  generation 2 at 150s, each later interval 3x longer, ten total. Edge is 1.5,
-  1.25, 1.1, 1, 0.9 by generations behind. Upgrade cost is 50 Cash x 6 per tier.
-  Add `tests/releases.test.ts` for the schedule, the Edge table and the cost.
-  Check: `npm test -- releases` green; build confirms types.
-  Evidence: `tests/releases.test.ts` 8/8 green; `npm run build` clean.
+- [ ] 3. Bot core and one target table: add `src/sim/bot.ts` with a
+  deterministic rule-based player (hire in a fixed order, keep Learn ahead of
+  build burn, staff Cash, Followers and Leads, upgrade the subscription when a
+  release is out and Cash allows, buy the cheaper upgrade with a reserve,
+  record and update automations) and a report with venture ship times, Edge at
+  each ship, first-hire and first-gate times, Edge time distribution and
+  fall-behind episodes. Put every target range in `src/sim/targets.ts` so the
+  CLI and tests share one source. Add `tests/sim.test.ts` with a short run that
+  ships venture 1, keeps resources non-negative and repeats identically.
+  Check: `npm test -- sim` green; a 10-minute run finishes in under a second.
+  Evidence: `tests/sim.test.ts` 3/3 green; a one-day run takes about half a
+  second; `npm run build` clean.
 
-- [x] 4. Save: add `elapsedSeconds` to the `serializeGame` whitelist; bump
-  `SAVE_VERSION` to 6; migration 5 sets elapsed to the saved tier's release
-  time; validation rejects negative elapsed, a tier above the latest release
-  and a tier above ten. Add a v5 fixture with tier 2 and no elapsed field.
-  Check: save and release tests green; every prior migration fixture still
-  loads at version 6; `serializeGame` output includes elapsed.
-  Evidence: save 24/24 and releases 8/8 green; v5 fixture with tier 2 loads
-  with `elapsedSeconds` 150; invalid-clock cases rejected; serialize writes
-  version 6 with elapsed.
+- [ ] 4. CLI: replace the `src/sim/run.ts` stub with a thirty-day run that
+  prints the milestone table and target checks, exits nonzero on a miss, and
+  accepts `--days` and `--json` for cheap tuning passes. Run it once on the
+  current config and record the actual times.
+  Check: `npm run sim` prints every milestone, the Edge at each venture and a
+  PASS/FAIL line per target; `--days 1` and `--json` work; the baseline run is
+  recorded in the plan evidence.
+  Evidence: baseline on the Phase 7 numbers: V1 1:25, V2 4:40, V3 17:35,
+  V5 3:16, gate never, V10 not reached, Edge at max 100%. All 7 pacing targets
+  and 2 arms-race checks failed.
 
-- [x] 5. Clock and Edge wiring: `cashGain(state, amount)` in `releases.ts` is
-  the single Edge multiplier. Advance the clock once per tick before
-  production. Route day job, Client work payout, cash automations and passive
-  venture income through `cashGain`, and use it in `resourceRates` and the
-  venture card. Client work still consumes Leads by handled volume and Credits
-  at 5 per Lead; XP uses handled, not Cash. Leave burn, Followers, Leads,
-  Know-how and Credits unscaled. Update the existing Cash expectations that now
-  earn 1.5x at generation 1.
-  Check: full suite green, including the new Edge cases and the unchanged
-  non-Cash numbers.
-  Evidence: `npm test` 148/148; `tests/edge.test.ts` 10/10 covers tick-start
-  release, offline release, click clock, day job, passive, Client work, cash
-  automation, non-Cash, rates and XP; build clean.
+- [ ] 5. Tune the early game until the first agent, venture 1 and venture 2
+  land in their target ranges. Adjust `config.ts`; update the pinned test
+  expectations the change moves, without weakening assertions; rerun the sim
+  and record each attempt.
+  Check: sim report first agent under 2 minutes, venture 1 in 3-5 minutes and
+  venture 2 in 15-20 minutes; `npm test` green.
+  Evidence: first agent 0:30, V1 4:00, V2 15:20; `npm test` 153/153 after the
+  pinned numbers followed the tune.
 
-- [x] 6. Subscription action: `upgradeSubscription` in `actions.ts` charges the
-  next tier's cost only when that generation is out, the tier is below ten and
-  Cash covers it. Add tests that the upgrade raises the Credits trickle and that
-  each rejection changes nothing.
-  Check: `npm test -- releases` and the full suite green.
-  Evidence: releases 10/10; `npm test` 150/150; `npm run build` clean.
+- [ ] 6. Tune the middle game until venture 3 is about an hour, venture 5 ships
+  by the end of day 1, and the first Follower gate is reached on day 2.
+  Adjust `config.ts` and its pinned tests; rerun and record each attempt.
+  Check: sim report venture 3 in 50-75 minutes, venture 5 by 24 hours and first
+  gate in 24-48 hours; `npm test` green.
+  Evidence: V3 50:45, V5 6:14, first gate 25:15; `npm test` 153/153.
 
-- [x] 7. UI: add `ReleaseCard` (generation, Edge, tier and Credits rate, next
-  release countdown, ten-step timeline, release news) to the side column, wire
-  the upgrade action through `useGame`, and add the card's CSS.
-  Check: `npm run build` clean; desktop and mobile screenshots show no overflow
-  and the card at 390px.
-  Evidence: `npm run build` clean; `artifacts/desktop.png` and
-  `artifacts/mobile.png` show the release card at 1440px and 390px with 0
-  overflow.
+- [ ] 7. Tune the late game and the arms race: venture 10 in 14-21 days, at
+  least two fall-behind-then-catch-up episodes before generation 10, and Edge
+  neither pinned at 1.5 nor at 0.9 before generation 10 (generation 10 itself
+  arrives on day 17, so the last stretch is expected to sit at 1.5). Adjust
+  `config.ts` and its pinned tests; rerun and record each attempt.
+  Check: sim report venture 10 in 14-21 days, fall-behind episodes >= 2, final
+  Edge 1.5, at least three distinct Edge values, and less than 80% of the
+  pre-generation-10 time at the maximum Edge.
+  Evidence: V10 18d 03:14, 4 fall-behind episodes, 3 Edge values, final Edge
+  1.5, 34% of the run at the maximum Edge; all 7 pacing and 4 arms-race checks
+  pass.
 
-- [x] 8. Extend `verify:ui`: assert generation 1 and Edge x1.5 on a fresh game,
-  seed 150 elapsed seconds and Cash, assert generation 2 and Edge x1.25, then
-  upgrade and assert tier 2, Edge x1.5 and the higher Credits rate.
-  Check: `npm run verify:ui` passes with the new assertions and keeps the
-  existing automation and gate checks.
-  Evidence: `npm run verify:ui` passed: generation 1/Edge 1.5 on a fresh game;
-  seeded generation 2/Edge 1.25; upgrade to tier 2 spent 50 Cash, Edge 1.5 and
-  trickle 1.5/s; automation and gate checks still pass; 0 overflow at both
-  widths.
-
-- [x] 9. Docs, checks and commit: update `docs/spec.md` with the Phase 7
-  section, mark this plan complete with evidence, run `npm test`,
-  `npm run build` and `npm run verify:ui`, then commit as DowntownDX with the
-  DeepSeek V4.1 Flash co-author trailer.
-  Check: all three commands pass; `git status` clean; commit message names
-  Phase 7.
-  Evidence: `docs/spec.md` Phase 7 section added; `npm test` 150/150,
-  `npm run build` clean, `npm run verify:ui` passed; committed as
-  `Phase 7: release clock, subscriptions and Edge`.
+- [x] 8. Final pass: run the full sim, write `docs/balance-log.md` entries for
+  every tuning round with the run that justified it, update `docs/spec.md`
+  where tuned numbers differ from the first draft, mark this plan complete, run
+  `npm test`, `npm run build` and `npm run sim`, and commit as DowntownDX with
+  the DeepSeek V4.1 Flash co-author trailer.
+  Check: all three commands pass, `git status` clean, commit message names
+  Phase 8, and the balance log has one entry per tuning round.
+  Evidence: `npm test` 153/153, `npm run build` clean, `npm run sim` PASS with
+  exit 0, `npm run verify:ui` PASS with 0 overflow; five balance-log entries;
+  committed as `Phase 8: sim bot, pacing and balance`.
 
 ## Resolved assumptions
 
-- The release clock is game time (`elapsedSeconds`), not wall time. Only
-  `step` and offline catch-up advance it; Do it yourself clicks do not.
-- The clock advances at the start of a tick, so a generation that lands on that
-  tick sets Edge for the same tick's production.
-- Edge applies to Cash earned, never to Cash spent or to the starting stock.
-  It scales live automation Cash too; the snapshot itself stays frozen.
-- The starting free subscription is generation 1, the latest at time zero, so a
-  fresh game earns the 1.5x Edge. Existing Cash expectations move by 1.5x.
-- A subscription can only rise to a generation that has already been released.
-  Tier ten is the cap.
-- Lab names are still an operator decision, so the feed names generations, not
-  labs.
+- The bot plays idle/automated: no Do it yourself clicks, because the targets
+  describe a player who checks in a few times a day.
+- The sim runs continuous game time for 30 days, in fixed steps, with no
+  offline gaps; the 8-hour cap is a real-player limit, not a sim limit.
+- Milestones are measured from a fresh game. "First Follower gate" is the first
+  tick where the current gated venture has enough Followers to launch.
+- The bot covers every resource a build burns before it builds: Learn runs
+  ahead of Know-how burn and the Credits trickle is not spent on upgrades that
+  would starve the next build.
+- Balance changes live in `config.ts`; `docs/spec.md` keeps the design but its
+  first-draft numbers are updated to the tuned ones.
+- `npm run sim` is a check, not a demo: a missed target sets a nonzero exit
+  code so the phase cannot pass silently.
 
 ## Out of scope
 
-- Balance tuning, the sim bot and `balance-log.md` (Phase 8).
-- Welcome-back summary, reset, guide, deploy (Phase 9).
+- UI changes, new systems, welcome-back summary, reset, guide, deploy.
+- Real-player telemetry; targets stay proposals until people play.

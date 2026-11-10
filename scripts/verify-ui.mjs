@@ -67,7 +67,7 @@ try {
   }
   const followersAfterClick = Number(await followers());
   assert.ok(
-    followersAfterClick >= followersAfterTick + 7,
+    followersAfterClick >= followersAfterTick + 0.5,
     `active play should add followers, got ${followersAfterClick}`,
   );
 
@@ -98,10 +98,21 @@ try {
   }
   await page.waitForTimeout(38_000);
 
+  await page.waitForTimeout(500);
+  const buildSeed = await page.evaluate(() => {
+    const raw = localStorage.getItem("keep-up.save");
+    if (!raw) throw new Error("no save to seed for the build");
+    const data = JSON.parse(raw);
+    data.savedAt = Date.now();
+    data.state.ventureProgress = 259;
+    data.state.resources.credits = 1_000;
+    data.state.resources.knowHow = 1_000;
+    return JSON.stringify(data);
+  });
+  await page.addInitScript((save) => localStorage.setItem("keep-up.save", save), buildSeed);
+  await page.reload({ waitUntil: "networkidle" });
   await page.getByRole("article", { name: "You" }).getByRole("button", { name: /Build venture/ }).click();
-  for (let i = 0; i < 36; i += 1) {
-    await page.getByRole("article", { name: "You" }).getByRole("button", { name: /Do it yourself/ }).click();
-  }
+  await page.getByRole("article", { name: "You" }).getByRole("button", { name: /Do it yourself/ }).click();
   await page.getByRole("heading", { name: "Newsletter" }).waitFor();
   assert.match(await page.locator(".venture-count").innerText(), /1 shipped/);
   assert.equal(await you.getByRole("button", { name: /Find clients/ }).isDisabled(), false);
@@ -138,8 +149,8 @@ try {
   );
   const cashAfterUpgrade = Number(await cash());
   assert.ok(
-    cashAfterUpgrade >= 50 && cashAfterUpgrade < 60,
-    `the upgrade should charge 50 Cash, got ${cashAfterUpgrade}`,
+    cashAfterUpgrade >= 75 && cashAfterUpgrade < 85,
+    `the upgrade should charge 25 Cash, got ${cashAfterUpgrade}`,
   );
   const edgeAfterUpgrade = (await edgeBadge.innerText()).trim();
 
@@ -224,7 +235,7 @@ try {
   const gatePage = await gateContext.newPage();
   await gatePage.goto(url, { waitUntil: "networkidle" });
   await gatePage.getByRole("heading", { name: "Browser extension" }).waitFor();
-  assert.match(await gatePage.locator(".gate").innerText(), /5K Followers/);
+  assert.match(await gatePage.locator(".gate").innerText(), /1\.1M Followers/);
   assert.equal(
     await gatePage
       .getByRole("article", { name: "You" })

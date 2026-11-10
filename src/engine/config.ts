@@ -29,7 +29,7 @@ export interface ActivityConfig {
 /** Activities that exist in the engine so far. Later phases add entries. */
 export const ACTIVITIES: Partial<Record<ActivityId, ActivityConfig>> = {
   dayJob: { label: "Day job tasks", resource: "cash", basePerSecond: 0.5, unlockVentures: 0 },
-  content: { label: "Make content", resource: "followers", basePerSecond: 1, unlockVentures: 0 },
+  content: { label: "Make content", resource: "followers", basePerSecond: 0.1, unlockVentures: 0 },
   learn: { label: "Learn", resource: "knowHow", basePerSecond: 0.2, unlockVentures: 0 },
   findClients: {
     label: "Find clients",
@@ -81,7 +81,7 @@ export const SKILL_BONUS_PER_LEVEL = 0.12;
 export const XP_BASE_SECONDS = 15;
 export const XP_GROWTH = 1.25;
 
-export const AGENT_SEAT_COSTS: readonly number[] = [40, 400, 4_000, 40_000, 400_000];
+export const AGENT_SEAT_COSTS: readonly number[] = [40, 800, 12_000, 120_000, 1_200_000];
 export const MAX_AGENTS = AGENT_KINDS.length;
 
 export const STARTING_RESOURCES: Record<ResourceId, number> = {
@@ -116,10 +116,15 @@ export const VENTURE_NAMES = [
 ] as const;
 export const VENTURE_COUNT = VENTURE_NAMES.length;
 
-export const BUILD_POINTS_BASE = 60;
-export const BUILD_POINTS_GROWTH = 5;
+/**
+ * Build points per venture, tuned in Phase 8. The early slope is steeper than
+ * the tail so ventures 2-3 take a few more minutes without stretching the end.
+ */
+export const BUILD_POINTS_BY_VENTURE: readonly number[] = [
+  260, 1_000, 4_700, 14_190, 46_830, 154_540, 510_000, 1_683_000, 5_555_000, 18_330_000,
+];
 export const BUILD_CREDITS_PER_POINT = 1;
-export const BUILD_KNOWHOW_PER_POINT = 0.2;
+export const BUILD_KNOWHOW_PER_POINT = 0.05;
 
 export const VENTURE_INCOME_BASE = 0.5;
 export const VENTURE_INCOME_GROWTH = 3;
@@ -140,8 +145,8 @@ export const TEAM_BONUS_PER_LEVEL = 0.005;
 export const AUTOMATION_FRACTION = 0.5;
 export const FUNNEL_FOLLOWERS_PER_LEAD = 2_000;
 export const FOLLOWER_GATE_START_INDEX = 5;
-export const FOLLOWER_GATE_BASE = 5_000;
-export const FOLLOWER_GATE_GROWTH = 6;
+export const FOLLOWER_GATE_BASE = 1_150_000;
+export const FOLLOWER_GATE_GROWTH = 1.8;
 
 /** Model generations in the arms race, one subscription tier each. */
 export const MODEL_COUNT = 10;
@@ -152,8 +157,10 @@ export const RELEASE_INTERVAL_GROWTH = 3;
 
 /** Cash multiplier by generations behind the latest release; the last entry is the floor. */
 export const EDGE_MULTIPLIERS: readonly number[] = [1.5, 1.25, 1.1, 1, 0.9];
-export const SUBSCRIPTION_UPGRADE_BASE_COST = 50;
-export const SUBSCRIPTION_UPGRADE_COST_GROWTH = 6;
+/** Cash for tiers 2-10, tuned in Phase 8 to make early upgrades a real choice. */
+export const SUBSCRIPTION_UPGRADE_COSTS: readonly number[] = [
+  25, 500, 15_000, 300_000, 6_000_000, 60_000_000, 300_000_000, 1_000_000_000, 3_000_000_000,
+];
 export const MAX_SUBSCRIPTION_TIER = MODEL_COUNT;
 
 export const SYSTEMS = [

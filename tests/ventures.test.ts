@@ -17,10 +17,10 @@ describe("venture schedule", () => {
     expect(VENTURE_NAMES[9]).toBe("Product portfolio");
   });
 
-  it("grows the build requirement 5x per venture", () => {
-    expect(buildPointsRequired(0)).toBe(60);
-    expect(buildPointsRequired(1)).toBe(300);
-    expect(buildPointsRequired(2)).toBe(1_500);
+  it("uses the tuned build requirement per venture", () => {
+    expect(buildPointsRequired(0)).toBe(260);
+    expect(buildPointsRequired(1)).toBe(1_000);
+    expect(buildPointsRequired(2)).toBe(4_700);
   });
 
   it("grows passive income 3x per venture", () => {

@@ -304,10 +304,10 @@ describe("invalid saves", () => {
   it("rejects venture progress at or above the current requirement", () => {
     const state = structuredClone(createInitialState());
     state.venturesShipped = 1;
-    state.ventureProgress = 300;
+    state.ventureProgress = 1_000;
     expect(loadGame(payload(SAVE_VERSION, state, 1_000))).toBeNull();
 
-    state.ventureProgress = 299;
+    state.ventureProgress = 999;
     expect(loadGame(payload(SAVE_VERSION, state, 1_000))).not.toBeNull();
   });
 

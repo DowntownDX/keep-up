@@ -19,7 +19,7 @@ describe("step", () => {
     const state = gameWithYouOn("content");
     step(state, 60);
 
-    expect(state.resources.followers).toBeCloseTo(82.512, 9);
+    expect(state.resources.followers).toBeCloseTo(8.2512, 9);
     expect(state.workers[0].skills.content.level).toBe(4);
     expect(state.workers[0].skills.content.xp).toBeCloseTo(2.8125, 9);
     expect(state.resources.credits).toBeCloseTo(80, 9);
@@ -39,7 +39,7 @@ describe("step", () => {
 
     step(state, 10);
 
-    expect(state.resources.followers).toBeCloseTo(16, 9);
+    expect(state.resources.followers).toBeCloseTo(1.6, 9);
     expect(state.workers[1].skills.content.level).toBe(1);
     expect(state.workers[1].skills.content.xp).toBeCloseTo(10, 9);
   });
@@ -99,7 +99,7 @@ describe("step", () => {
     expect(state.workers[0].skills.dayJob.level).toBe(1);
     expect(state.workers[0].skills.dayJob.xp).toBeCloseTo(10, 9);
     expect(state.resources.cash).toBeCloseTo(15 + 6 * 1.5, 9);
-    expect(state.resources.followers).toBeCloseTo(24.72, 9);
+    expect(state.resources.followers).toBeCloseTo(2.472, 9);
   });
 
   it("treats one 3,600-second step like 3,600 one-second steps", () => {
@@ -122,14 +122,14 @@ describe("step", () => {
     expect(state.pendingSeconds).toBeCloseTo(0.5, 12);
 
     step(state, 0.5);
-    expect(state.resources.followers).toBeCloseTo(1.2, 9);
+    expect(state.resources.followers).toBeCloseTo(0.12, 9);
     expect(state.pendingSeconds).toBe(0);
   });
 
   it("turns ten tenths of a second into one tick", () => {
     const state = gameWithYouOn("content");
     for (let i = 0; i < 10; i += 1) step(state, 0.1);
-    expect(state.resources.followers).toBeCloseTo(1.2, 9);
+    expect(state.resources.followers).toBeCloseTo(0.12, 9);
     expect(state.pendingSeconds).toBe(0);
   });
 

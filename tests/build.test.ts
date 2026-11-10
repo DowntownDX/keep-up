@@ -20,22 +20,22 @@ describe("build venture", () => {
 
     expect(state.ventureProgress).toBeCloseTo(12, 9);
     expect(state.resources.credits).toBeCloseTo(100 + 10 - 12, 9);
-    expect(state.resources.knowHow).toBeCloseTo(10 - 2.4, 9);
+    expect(state.resources.knowHow).toBeCloseTo(10 - 0.6, 9);
     expect(state.workers[0].skills.build.level).toBe(1);
     expect(state.workers[0].skills.build.xp).toBeCloseTo(10, 9);
     expect(state.venturesShipped).toBe(0);
   });
 
   it("builds half-starved when Know-how runs out", () => {
-    const state = buildGame({ credits: 1_000, knowHow: 1 });
+    const state = buildGame({ credits: 1_000, knowHow: 0.3 });
 
     step(state, 10);
 
-    expect(state.ventureProgress).toBeCloseTo(5, 9);
-    expect(state.resources.credits).toBeCloseTo(1_005, 9);
+    expect(state.ventureProgress).toBeCloseTo(6, 9);
+    expect(state.resources.credits).toBeCloseTo(1_004, 9);
     expect(state.resources.knowHow).toBeCloseTo(0, 9);
     expect(state.resources.knowHow).toBeGreaterThanOrEqual(0);
-    expect(state.workers[0].skills.build.xp).toBeCloseTo(5 / 1.2, 9);
+    expect(state.workers[0].skills.build.xp).toBeCloseTo(5, 9);
   });
 
   it("makes no progress when Know-how is gone", () => {
@@ -56,30 +56,30 @@ describe("build venture", () => {
 
     expect(state.resources.credits).toBe(0);
     expect(state.ventureProgress).toBeCloseTo(1, 9);
-    expect(state.resources.knowHow).toBeCloseTo(1_000 - 0.2, 9);
+    expect(state.resources.knowHow).toBeCloseTo(1_000 - 0.05, 9);
   });
 
   it("ships venture 1 and pays income from the next tick", () => {
     const state = buildGame({ credits: 1_000, knowHow: 1_000 });
 
-    step(state, 60);
+    step(state, 180);
 
     expect(state.venturesShipped).toBe(1);
     expect(state.ventureProgress).toBeGreaterThan(0);
-    expect(state.ventureProgress).toBeLessThan(300);
-    expect(passiveCashRate(state)).toBeCloseTo(0.75, 9);
+    expect(state.ventureProgress).toBeLessThan(1_000);
+    expect(passiveCashRate(state)).toBeCloseTo(0.625, 9);
     expect(isSystemUnlocked(state, "skills")).toBe(true);
     expect(isSystemUnlocked(state, "automations")).toBe(false);
     expect(hasWon(state)).toBe(false);
 
     const cashBefore = state.resources.cash;
     step(state, 10);
-    expect(state.resources.cash - cashBefore).toBeCloseTo(7.5, 9);
+    expect(state.resources.cash - cashBefore).toBeCloseTo(6.25, 9);
   });
 
   it("carries overflow into the next venture and starts income next tick", () => {
     const state = buildGame({ credits: 1_000, knowHow: 1_000 });
-    state.ventureProgress = 59.9;
+    state.ventureProgress = 259.9;
 
     step(state, 1);
 
@@ -93,12 +93,12 @@ describe("build venture", () => {
 
   it("can ship twice in one tick when overflow covers the next venture", () => {
     const state = buildGame({ credits: 1_000, knowHow: 1_000 });
-    state.ventureProgress = 360;
+    state.ventureProgress = 1_259.9;
 
     step(state, 1);
 
     expect(state.venturesShipped).toBe(2);
-    expect(state.ventureProgress).toBeCloseTo(1.2, 9);
+    expect(state.ventureProgress).toBeCloseTo(1.1, 9);
   });
 
   it("does nothing once all ten ventures have shipped", () => {

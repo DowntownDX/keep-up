@@ -39,16 +39,16 @@ describe("workerRate", () => {
   it("combines base rate, specialty and skill level", () => {
     const state = createInitialState();
     const you = createWorker("you", "you");
-    expect(workerRate(state, you, "content")).toBeCloseTo(1 * 1.2);
+    expect(workerRate(state, you, "content")).toBeCloseTo(0.1 * 1.2);
     you.skills.content.level = 3;
-    expect(workerRate(state, you, "content")).toBeCloseTo(1 * 1.2 * 1.24);
+    expect(workerRate(state, you, "content")).toBeCloseTo(0.1 * 1.2 * 1.24);
   });
 
   it("uses 1x for a non-specialist agent", () => {
     const state = createInitialState();
     const creator = createWorker("agent-1", "creator");
     expect(workerRate(state, creator, "dayJob")).toBeCloseTo(0.5);
-    expect(workerRate(state, creator, "content")).toBeCloseTo(1.6);
+    expect(workerRate(state, creator, "content")).toBeCloseTo(0.16);
     expect(workerRate(state, creator, "learn")).toBeCloseTo(0.2);
   });
 
@@ -91,7 +91,7 @@ describe("resourceRates", () => {
     state.workers[0].activity = "content";
     state.workers[1].activity = "content";
     const rates = resourceRates(state);
-    expect(rates.followers).toBeCloseTo(1.2 + 1.6);
+    expect(rates.followers).toBeCloseTo(0.12 + 0.16);
     expect(rates.credits).toBe(1);
     expect(rates.cash).toBe(0);
   });
@@ -115,7 +115,7 @@ describe("resourceNetRates", () => {
     state.workers[0].activity = "build";
     const rates = resourceNetRates(state);
     expect(rates.credits).toBeCloseTo(1 - 1.2, 9);
-    expect(rates.knowHow).toBeCloseTo(-0.24, 9);
+    expect(rates.knowHow).toBeCloseTo(-0.06, 9);
   });
 
   it("does not subtract burn after the game is won", () => {

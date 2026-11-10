@@ -73,10 +73,10 @@ describe("Edge", () => {
 });
 
 describe("subscription cost", () => {
-  it("starts at 50 Cash and grows 6x per tier", () => {
-    expect(subscriptionUpgradeCost(1)).toBe(50);
-    expect(subscriptionUpgradeCost(2)).toBe(300);
-    expect(subscriptionUpgradeCost(3)).toBe(1_800);
+  it("uses the tuned cost table and stops at the cap", () => {
+    expect(subscriptionUpgradeCost(1)).toBe(25);
+    expect(subscriptionUpgradeCost(2)).toBe(500);
+    expect(subscriptionUpgradeCost(3)).toBe(15_000);
     expect(subscriptionUpgradeCost(10)).toBeNull();
   });
 
@@ -87,9 +87,9 @@ describe("subscription cost", () => {
 
     const released = at(150);
     expect(canUpgradeSubscription(released)).toBe(false);
-    released.resources.cash = 49;
+    released.resources.cash = 24;
     expect(canUpgradeSubscription(released)).toBe(false);
-    released.resources.cash = 50;
+    released.resources.cash = 25;
     expect(canUpgradeSubscription(released)).toBe(true);
 
     const top = at(Number.MAX_SAFE_INTEGER, 10);
@@ -107,7 +107,7 @@ describe("subscription upgrade", () => {
     expect(upgradeSubscription(state)).toBe(true);
 
     expect(state.subscriptionTier).toBe(2);
-    expect(state.resources.cash).toBe(50);
+    expect(state.resources.cash).toBe(75);
     expect(creditRate(state)).toBeCloseTo(before * 1.5, 9);
     expect(edgeMultiplier(state)).toBe(1.5);
   });
@@ -120,10 +120,10 @@ describe("subscription upgrade", () => {
     expect(early).toEqual(before);
 
     const poor = at(150);
-    poor.resources.cash = 49;
+    poor.resources.cash = 24;
     expect(upgradeSubscription(poor)).toBe(false);
     expect(poor.subscriptionTier).toBe(1);
-    expect(poor.resources.cash).toBe(49);
+    expect(poor.resources.cash).toBe(24);
 
     const top = at(10, 10);
     top.resources.cash = 1_000_000_000;

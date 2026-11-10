@@ -66,7 +66,7 @@ describe("multipliers", () => {
     const you = createWorker("you", "you");
     you.skills.content.level = 2;
 
-    expect(workerRate(state, you, "content")).toBeCloseTo(1 * 1.2 * 1.12 * 1.08 * 1.1, 9);
+    expect(workerRate(state, you, "content")).toBeCloseTo(0.1 * 1.2 * 1.12 * 1.08 * 1.1, 9);
   });
 });
 
