@@ -22,6 +22,16 @@ export const WORKER_LABELS: Record<WorkerKind, string> = {
   builder: "Builder agent",
 };
 
+/** One letter per kind for the card monogram. */
+export const WORKER_MARKS: Record<WorkerKind, string> = {
+  you: "Y",
+  assistant: "A",
+  creator: "C",
+  scout: "S",
+  tutor: "T",
+  builder: "B",
+};
+
 export const ACTIVITY_NAMES: Record<ActivityId, string> = {
   dayJob: "Day job tasks",
   content: "Make content",

@@ -155,8 +155,9 @@ its build bar and passive income, and a hire panel. It autosaves to localStorage
 every five seconds and on page hide, and applies up to eight hours of offline
 work on load.
 
-Only implemented activities appear. The provisional look is text and bars only;
-the final art direction remains an operator decision.
+Only implemented activities appear. Phase 4 shipped text and bars only; the
+Phase 10 feel pass adds the paper sheet, the live worker feedback, the ledger
+and the stamp book. A full art pass remains an operator decision.
 
 ## Side hustle and upgrades (Phase 5)
 
@@ -222,3 +223,31 @@ The production build is a static site: `npm run build` writes `dist/`, and
 `npm run verify:preview` runs the whole browser check against that built bundle
 at desktop and phone width. The host and public URL remain the operator's
 choice and are not part of this repository; `docs/deploy.md` lists the steps.
+
+## The feel pass (Phase 10)
+
+The venture is the focal object: a focus row pairs the venture sheet with the
+next move, the crew follows below, and the release, upgrade and hire rail runs
+down the side. The venture reads as a sheet of paper: ruled lines, a margin
+rule, a hard offset shadow, and a masthead smaller than the venture title.
+
+Every action answers: buttons press in, the resource strip flashes, and Do it
+yourself stamps WORKED on the worker card. Motion is short and respects
+`prefers-reduced-motion`; the colour flash remains as non-motion feedback.
+
+Each worker card carries a one-letter monogram, a live dot and the current
+output rate. Idle workers say "Waiting for a task"; a gated, stalled or
+finished worker says why. A Ledger card records ships, level-ups, hires,
+upgrades, subscription tiers, automations and releases from state diffs. It
+keeps the six newest lines, is not persisted and clears on reset. A Stamps card
+derives eight milestones from the current state and shows earned and locked
+stamps.
+
+The venture card shows an "About ..." ETA from the slowest of build output,
+Credits per point and Know-how per point, including stock buffers. It shows no
+ETA when the venture is gated, won, unstaffed or cannot finish. The upgrade
+tabs show the current and next bonus and the time to afford. A ship briefly
+stamps SHIPPED.
+
+Phase 10 changes presentation and UI state only; the engine, balance and save
+shape are unchanged.

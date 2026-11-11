@@ -4,9 +4,9 @@ import {
   SKILLS_BONUS_PER_LEVEL,
   TEAM_BONUS_PER_LEVEL,
 } from "../engine/config";
-import { promptCost, skillsCost } from "../engine/rates";
 import type { GameState } from "../engine/state";
-import { formatAmount, formatPercent } from "./format";
+import { promptForecast, skillsForecast } from "./forecast";
+import { formatAmount, formatBonus, formatDuration, formatPercent } from "./format";
 
 type TabId = "prompt" | "skills";
 
@@ -16,12 +16,18 @@ export interface UpgradeCardProps {
   onBuySkills: () => void;
 }
 
+function affordLabel(seconds: number | null): string {
+  if (seconds === null) return "No income yet";
+  if (seconds <= 0) return "Affordable now";
+  return `About ${formatDuration(Math.max(1, Math.ceil(seconds)))}`;
+}
+
 export function UpgradeCard({ state, onBuyPrompt, onBuySkills }: UpgradeCardProps) {
   const [tab, setTab] = useState<TabId>("prompt");
   const promptTab = useRef<HTMLButtonElement>(null);
   const skillsTab = useRef<HTMLButtonElement>(null);
-  const promptCostNow = promptCost(state.promptLevel);
-  const skillsCostNow = skillsCost(state.skillsLevel);
+  const prompt = promptForecast(state);
+  const skills = skillsForecast(state);
 
   function selectTab(next: TabId) {
     setTab(next);
@@ -79,18 +85,24 @@ export function UpgradeCard({ state, onBuyPrompt, onBuySkills }: UpgradeCardProp
         className="upgrade-panel"
         hidden={tab !== "prompt"}
       >
-        <p className="upgrade-level">Level {state.promptLevel}</p>
+        <p className="upgrade-level">Level {prompt.level}</p>
+        <p className="upgrade-preview">
+          Now +{formatBonus(prompt.now)} → next +{formatBonus(prompt.next)}
+        </p>
         <p className="upgrade-effect">
           +{formatPercent(PROMPT_BONUS_PER_LEVEL)} to Followers, Know-how, Leads and build
           points per level.
         </p>
         <div className="upgrade-buy">
-          <span>Next level: {formatAmount(promptCostNow)} Cash</span>
+          <div className="upgrade-cost">
+            <span>Next level: {formatAmount(prompt.cost)} Cash</span>
+            <span className="upgrade-eta">{affordLabel(prompt.seconds)}</span>
+          </div>
           <button
             type="button"
             className="buy-button"
-            disabled={state.resources.cash < promptCostNow}
-            aria-label={`Buy Prompt library level for ${formatAmount(promptCostNow)} Cash`}
+            disabled={state.resources.cash < prompt.cost}
+            aria-label={`Buy Prompt library level for ${formatAmount(prompt.cost)} Cash`}
             onClick={onBuyPrompt}
           >
             Buy level
@@ -105,7 +117,10 @@ export function UpgradeCard({ state, onBuyPrompt, onBuySkills }: UpgradeCardProp
         className="upgrade-panel"
         hidden={tab !== "skills"}
       >
-        <p className="upgrade-level">Level {state.skillsLevel}</p>
+        <p className="upgrade-level">Level {skills.level}</p>
+        <p className="upgrade-preview">
+          Now +{formatBonus(skills.now)} → next +{formatBonus(skills.next)}
+        </p>
         <p className="upgrade-effect">
           +{formatPercent(SKILLS_BONUS_PER_LEVEL)} to Cash, Followers, Leads and build
           points per level.
@@ -115,12 +130,15 @@ export function UpgradeCard({ state, onBuyPrompt, onBuySkills }: UpgradeCardProp
           activity for everyone.
         </p>
         <div className="upgrade-buy">
-          <span>Next level: {formatAmount(skillsCostNow)} Know-how</span>
+          <div className="upgrade-cost">
+            <span>Next level: {formatAmount(skills.cost)} Know-how</span>
+            <span className="upgrade-eta">{affordLabel(skills.seconds)}</span>
+          </div>
           <button
             type="button"
             className="buy-button"
-            disabled={state.resources.knowHow < skillsCostNow}
-            aria-label={`Buy Skills level for ${formatAmount(skillsCostNow)} Know-how`}
+            disabled={state.resources.knowHow < skills.cost}
+            aria-label={`Buy Skills level for ${formatAmount(skills.cost)} Know-how`}
             onClick={onBuySkills}
           >
             Buy level

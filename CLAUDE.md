@@ -10,6 +10,7 @@ Browser idle game. Read docs/spec.md and docs/decisions.md before changing game 
 - npm run build    production build
 
 ## Rules
+- The codified ds workflow is in `docs/ds-workflow.md`. Use it for task routing, gates and evidence.
 - Start every phase with the ds-plan-loop skill: write the numbered plan to PLAN.md, get one fresh-context critique, then execute one step at a time and mark each step with its evidence.
 - After the plan, check which ds skills fit the phase and load them (for example ds-design for UI and ds-tdd for engine rules) before writing code.
 - Record every implementation decision in docs/decisions.md with its phase and reason, before building on it.

@@ -24,6 +24,11 @@ export function formatPercent(value: number): string {
   return `${trim(Math.min(1, Math.max(0, value)) * 100, 1)}%`;
 }
 
+/** Unclamped bonus shares, e.g. 1.04 -> "104%". */
+export function formatBonus(value: number): string {
+  return `${trim(value * 100, 1)}%`;
+}
+
 /** Compact elapsed time for countdowns and release ages. */
 export function formatDuration(seconds: number): string {
   const whole = Math.max(0, Math.floor(seconds));

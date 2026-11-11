@@ -20,6 +20,21 @@ import {
 
 const AUTOSAVE_MS = 5_000;
 
+export type ActionKind =
+  | "assign"
+  | "hire"
+  | "active"
+  | "automate"
+  | "buyPrompt"
+  | "buySkills"
+  | "subscription";
+
+export interface ActionTick {
+  id: number;
+  kind: ActionKind;
+  workerId?: string;
+}
+
 function readInitialGame(): { state: GameState; summary: OfflineSummary | null } {
   if (typeof window === "undefined") return { state: createInitialState(), summary: null };
   try {
@@ -31,6 +46,8 @@ function readInitialGame(): { state: GameState; summary: OfflineSummary | null }
 
 export interface GameController {
   state: GameState;
+  actionTick: ActionTick | null;
+  resetToken: number;
   offline: OfflineSummary | null;
   saveError: boolean;
   dismissOffline: () => void;
@@ -49,6 +66,9 @@ export function useGame(): GameController {
   const [state, setState] = useState<GameState>(initial.state);
   const [offline, setOffline] = useState<OfflineSummary | null>(initial.summary);
   const [saveError, setSaveError] = useState(false);
+  const [actionTick, setActionTick] = useState<ActionTick | null>(null);
+  const [resetToken, setResetToken] = useState(0);
+  const nextTick = useRef(0);
   const stateRef = useRef(state);
 
   useEffect(() => {
@@ -105,43 +125,57 @@ export function useGame(): GameController {
     });
   }, []);
 
+  const markAction = useCallback((kind: ActionKind, workerId?: string) => {
+    nextTick.current += 1;
+    setActionTick({ id: nextTick.current, kind, workerId });
+  }, []);
+
   const assign = useCallback(
     (workerId: string, activity: ActivityId | null) => {
+      const worker = stateRef.current.workers.find((candidate) => candidate.id === workerId);
+      if (worker?.activity === activity) return;
       mutate((draft) => assignActivity(draft, workerId, activity));
+      markAction("assign", workerId);
     },
-    [mutate],
+    [mutate, markAction],
   );
 
   const hire = useCallback(
     (kind: AgentKind) => {
       mutate((draft) => addAgent(draft, kind));
+      markAction("hire");
     },
-    [mutate],
+    [mutate, markAction],
   );
 
   const active = useCallback(
     (workerId: string) => {
       mutate((draft) => doItYourself(draft, workerId));
+      markAction("active", workerId);
     },
-    [mutate],
+    [mutate, markAction],
   );
 
   const automate = useCallback(
     (workerId: string) => {
       mutate((draft) => recordAutomation(draft, workerId));
+      markAction("automate", workerId);
     },
-    [mutate],
+    [mutate, markAction],
   );
 
   const buyPromptLevel = useCallback(() => {
     mutate((draft) => buyPrompt(draft));
-  }, [mutate]);
+    markAction("buyPrompt");
+  }, [mutate, markAction]);
   const buySkillsLevel = useCallback(() => {
     mutate((draft) => buySkills(draft));
-  }, [mutate]);
+    markAction("buySkills");
+  }, [mutate, markAction]);
   const upgrade = useCallback(() => {
     mutate((draft) => upgradeSubscription(draft));
-  }, [mutate]);
+    markAction("subscription");
+  }, [mutate, markAction]);
 
   const dismissOffline = useCallback(() => {
     setOffline(null);
@@ -154,12 +188,16 @@ export function useGame(): GameController {
       // A failed clear still starts a fresh game; the next autosave replaces it.
     }
     setState(createInitialState());
+    setActionTick(null);
+    setResetToken((current) => current + 1);
     setOffline(null);
     setSaveError(false);
   }, []);
 
   return {
     state,
+    actionTick,
+    resetToken,
     offline,
     saveError,
     dismissOffline,

@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { VENTURE_COUNT, VENTURE_NAMES } from "../engine/config";
 import { cashGain } from "../engine/releases";
 import type { GameState } from "../engine/state";
@@ -10,14 +11,31 @@ import {
   passiveCashRate,
   ventureIncome,
 } from "../engine/ventures";
-import { formatAmount, formatPercent } from "./format";
+import { ventureEta } from "./forecast";
+import { formatAmount, formatDuration, formatPercent } from "./format";
 
 export function VentureCard({ state }: { state: GameState }) {
   const index = currentVentureIndex(state);
+  const eta = ventureEta(state);
+  const previousShipped = useRef(state.venturesShipped);
+  const [shipped, setShipped] = useState(false);
+
+  useEffect(() => {
+    const previous = previousShipped.current;
+    previousShipped.current = state.venturesShipped;
+    if (state.venturesShipped <= previous) {
+      setShipped(false);
+      return;
+    }
+    setShipped(true);
+    const timer = window.setTimeout(() => setShipped(false), 1_200);
+    return () => window.clearTimeout(timer);
+  }, [state.venturesShipped]);
 
   if (index === null) {
     return (
       <section className="card venture" aria-labelledby="venture-title">
+        {shipped ? <span className="ship-stamp" role="status">SHIPPED</span> : null}
         <p className="venture-index">Venture {VENTURE_COUNT} of {VENTURE_COUNT}</p>
         <h2 id="venture-title">All ten shipped</h2>
         <p className="win">
@@ -35,6 +53,7 @@ export function VentureCard({ state }: { state: GameState }) {
 
   return (
     <section className="card venture" aria-labelledby="venture-title">
+      {shipped ? <span className="ship-stamp" role="status">SHIPPED</span> : null}
       <div className="venture-head">
         <div>
           <p className="venture-index">
@@ -68,6 +87,14 @@ export function VentureCard({ state }: { state: GameState }) {
         </span>
         <span>{formatPercent(fraction)}</span>
       </p>
+
+      {!gated ? (
+        <p className="venture-eta">
+          {eta === null
+            ? "No ETA yet"
+            : `About ${formatDuration(Math.max(1, Math.ceil(eta.seconds)))} to ship`}
+        </p>
+      ) : null}
 
       <dl className="venture-stats">
         <div>

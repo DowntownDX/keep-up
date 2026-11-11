@@ -136,7 +136,7 @@ All Phase 0-3 decisions were made on 2026-11-10.
 | Save version 6 adds `elapsedSeconds`; version 5 migrates at the saved tier's release time. | Save shape change; migration and tests are mandatory, and an existing tier must stay valid. |
 | Validation rejects negative or non-finite elapsed time, a tier above the latest release and a tier above ten. | A tier ahead of the clock or past the model count is impossible. |
 | The timeline and news feed name generations, not labs. | Lab names remain an open operator decision. |
-| The release card sits after the venture card in the side column. | The arms race is the second global system and belongs next to venture progress. |
+| The release card sat after the venture card in the side column. Superseded by Phase 10: the venture moves to the focus row and the release card leads the side rail. | The arms race is the second global system and belonged next to venture progress. |
 
 ## Phase 8 — sim bot, pacing and balance
 
@@ -172,7 +172,28 @@ All Phase 0-3 decisions were made on 2026-11-10.
 | `vite.config.ts` uses `base: "./"` so one build works at a domain root and under the `/keep-up/` project path. | The Pages URL is a subpath; relative assets avoid a host-specific rebuild. |
 | `verify:ui --preview` runs the whole browser check against the built `dist` through `vite preview`. | The same checks prove the production bundle, not just the dev server. |
 
+## Phase 10 — the feel pass
+
+| Decision | Why |
+| --- | --- |
+| The venture sheet is the focal object; NextMove sits beside it and the crew follows below. | Four research passes agreed that Keep Up's equal-weight cards hide the loop. The thing being built should own the screen. |
+| Every action answers with a press state and a short resource-strip flash; Do it yourself also stamps WORKED on the card. | The click triad from game-feel research, adapted to the paper theme without inventing fake numbers. |
+| An `actionTick` in `useGame` marks user actions for feedback only. It never touches the engine or the save. | Presentation needs to know when the player acted, not what the simulation did. |
+| The ledger feed is derived by diffing consecutive states, capped at six lines, cleared on reset and aggregated for a multi-venture tick. | A persistent event log would change the save shape; a derived feed is enough for liveness and cannot drift. |
+| Stamps are derived from current state, not persisted. A reset re-earns them. | A stamp archive needs a meta decision; Phase 10 only needs a completion surface. |
+| Forecasts use a resource-capped build estimate and are labelled "about"; a gated, won or starved venture gets no ETA. | `applyBuild` is stock-capped and gates zero progress, so a bare points/rate ETA would lie. |
+| Worker state uses a CSS monogram instead of five hand-built SVG marks. | The research recommends monograms; one consistent system is cheaper and easier to keep legible. |
+| Motion uses 120–320ms responses and one ambient loop, all disabled by `prefers-reduced-motion`. | Idle screens are watched in the background; constant motion becomes noise. |
+| Sound, haptics, the full one-sheet theme and the richer return receipt wait for Phase 11. | They need assets, autoplay handling and broader layout work; the visual feedback pass comes first. |
+| Contracts, daily pages, streaks and prestige wait for Phase 12. | They are real systems with ethical and balance risk; the feel pass should be played before adding them. |
+| No economy, balance or save-shape changes in this phase. | The pacing sim already passes; this phase is presentation only. |
+
 ## Still open
 
+- Phase 11: Open Ledger theme pass, sound/haptics, richer return receipt.
+- Phase 12: contracts, daily page with slack, mastery ranks, expanded stamp book.
+- Sequel direction: the endless generator-stack branch is a separate app, not a
+  mode inside Keep Up (working decision, 2026-11-11). See
+  `docs/endless-transition.md`.
 - Operator decisions from the build plan: name, fictional labs, quitting the day
   job, art direction, offline cap as an upgrade.
