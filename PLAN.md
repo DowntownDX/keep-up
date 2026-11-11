@@ -122,7 +122,7 @@ Baseline: `npm test` 168/168, `npm run build` clean, `npm run sim` PASS at
   production (a builder can be paused); preview values are cumulative bonus
   shares and are not clamped at 100%.
 
-- [ ] 8. Verify, document, commit and deploy: extend `verify:ui` for the focus
+- [x] 8. Verify, document, commit and deploy: extend `verify:ui` for the focus
   order, ledger feed, stamps, worker live state, venture ETA and upgrade
   preview; update `docs/spec.md`; mark this plan complete with evidence; run
   `npm test`, `npm run build`, `npm run sim`, `npm run verify:ui` and
@@ -136,11 +136,13 @@ Baseline: `npm test` 168/168, `npm run build` clean, `npm run sim` PASS at
   both upgrade previews, no ETA when gated, and the SHIPPED stamp on the first
   and tenth ships. `npm test` 215/215; `npm run build` clean; `npm run sim`
   PASS; `npm run verify:ui` 73.7s PASS; `npm run verify:preview` 75.1s PASS.
-  Committed with the co-author trailer. Push, the public URL check at 390px
-  and a fully clean tree wait for operator approval; the untracked operator
-  files (`AGENTS.md`, `HANDOFF.md`, `idleon-bible.md`,
-  `idle-game-math-and-balance.md`, `opencode.json`, `.opencode/`) are
-  deliberately not touched.
+  Committed as `b3e1106` with the co-author trailer and pushed to `main`;
+  deploy workflow `43056044411` succeeded. The public URL at 390px serves
+  `assets/index-XnCyBmOE.js`, the Phase 10 bundle: 0 overflow, venture top 330
+  < crew top 797, one ledger and one stamp book, no console or page errors.
+  The tree is clean except the untracked operator files (`AGENTS.md`,
+  `HANDOFF.md`, `idleon-bible.md`, `idle-game-math-and-balance.md`,
+  `opencode.json`, `.opencode/`), which are deliberately not touched.
 
 ## Resolved assumptions
 
